@@ -11,7 +11,39 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CheckCircle2, Dumbbell, Footprints, Timer, Trophy, Zap } from "lucide-react";
 
-const plan = {
+type Drill = {
+  name: string;
+  target: string;
+  cue: string;
+};
+
+type DayPlan = {
+  title: string;
+  focus: string;
+  drills: Drill[];
+};
+
+type Metric = {
+  key: string;
+  label: string;
+  better: "lower" | "higher";
+};
+
+type DrillLogEntry = {
+  done?: boolean;
+  set1?: string;
+  set2?: string;
+  set3?: string;
+  best?: string;
+  notes?: string;
+};
+
+type DayLog = Record<string, DrillLogEntry>;
+type LogData = Record<string, DayLog>;
+type MetricWeekData = Record<string, string>;
+type MetricData = Record<number, MetricWeekData>;
+
+const plan: Record<string, DayPlan> = {
   Mon: {
     title: "Speed + Lower Strength",
     focus: "Acceleration and lower-body power",
@@ -93,7 +125,7 @@ const plan = {
   },
 };
 
-const defaultMetrics = [
+const defaultMetrics: Metric[] = [
   { key: "10yd", label: "10 yd Sprint (sec)", better: "lower" },
   { key: "20yd", label: "20 yd Sprint (sec)", better: "lower" },
   { key: "30yd", label: "30 yd Sprint (sec)", better: "lower" },
@@ -103,32 +135,33 @@ const defaultMetrics = [
   { key: "pullups", label: "Pull-Ups Max", better: "higher" },
 ];
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+type DayKey = (typeof days)[number];
 
-function loadState(key, fallback) {
+function loadState<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
   }
 }
 
-function saveState(key, value) {
+function saveState<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function todayToDayKey() {
-  const map = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function todayToDayKey(): DayKey {
+  const map: DayKey[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return map[new Date().getDay()];
 }
 
 export default function SpeedExplosiveTrainingApp() {
-  const [selectedDay, setSelectedDay] = useState(todayToDayKey());
-  const [weekNumber, setWeekNumber] = useState(() => loadState("weekNumber", 1));
-  const [logData, setLogData] = useState(() => loadState("trainingLogV2", {}));
-  const [metricData, setMetricData] = useState(() => loadState("metricDataV2", {}));
-  const [athlete, setAthlete] = useState(() => loadState("athleteName", "Athlete"));
+  const [selectedDay, setSelectedDay] = useState<DayKey>(todayToDayKey());
+  const [weekNumber, setWeekNumber] = useState<number>(() => loadState<number>("weekNumber", 1));
+  const [logData, setLogData] = useState<LogData>(() => loadState<LogData>("trainingLogV2", {}));
+  const [metricData, setMetricData] = useState<MetricData>(() => loadState<MetricData>("metricDataV2", {}));
+  const [athlete, setAthlete] = useState<string>(() => loadState<string>("athleteName", "Athlete"));
 
   useEffect(() => saveState("weekNumber", weekNumber), [weekNumber]);
   useEffect(() => saveState("trainingLogV2", logData), [logData]);
@@ -137,9 +170,13 @@ export default function SpeedExplosiveTrainingApp() {
 
   const dayPlan = plan[selectedDay];
   const logKey = `week${weekNumber}-${selectedDay}`;
-  const todayLog = logData[logKey] || {};
+  const todayLog: DayLog = logData[logKey] || {};
 
-  const updateDrill = (name, field, value) => {
+  const updateDrill = (
+    name: string,
+    field: keyof DrillLogEntry,
+    value: string | boolean
+  ) => {
     setLogData((prev) => ({
       ...prev,
       [logKey]: {
@@ -152,7 +189,7 @@ export default function SpeedExplosiveTrainingApp() {
     }));
   };
 
-  const updateMetric = (key, value) => {
+  const updateMetric = (key: string, value: string) => {
     setMetricData((prev) => ({
       ...prev,
       [weekNumber]: {
@@ -164,9 +201,9 @@ export default function SpeedExplosiveTrainingApp() {
 
   const metricSummary = useMemo(() => {
     return defaultMetrics.map((m) => {
-      const current = parseFloat(metricData?.[weekNumber]?.[m.key]);
-      const prev = parseFloat(metricData?.[weekNumber - 1]?.[m.key]);
-      let trend = null;
+      const current = parseFloat(metricData?.[weekNumber]?.[m.key] ?? "");
+      const prev = parseFloat(metricData?.[weekNumber - 1]?.[m.key] ?? "");
+      let trend: number | null = null;
       if (!Number.isNaN(current) && !Number.isNaN(prev)) {
         trend = m.better === "lower" ? prev - current : current - prev;
       }
@@ -244,7 +281,7 @@ export default function SpeedExplosiveTrainingApp() {
                       </div>
 
                       {dayPlan.drills.map((drill, idx) => {
-                        const entry = todayLog[drill.name] || {};
+                        const entry: DrillLogEntry = todayLog[drill.name] || {};
                         return (
                           <Card key={drill.name} className="rounded-3xl border-slate-200">
                             <CardContent className="p-4">
