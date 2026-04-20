@@ -392,7 +392,9 @@ export default function SpeedExplosiveTrainingApp() {
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const currentTrainingPlan = trainingPlans[selectedPlanId] || trainingPlans.speed_explosive;
+  const currentTrainingPlan = useMemo(() => {
+    return trainingPlans[selectedPlanId] ?? trainingPlans.speed_explosive;
+  }, [selectedPlanId]);
   const activeMetrics = currentTrainingPlan.metrics;
   const activeTimerPresets = currentTrainingPlan.timerPresets;
   const currentPreset = activeTimerPresets[timerPresetIndex] || activeTimerPresets[0];
@@ -593,29 +595,29 @@ export default function SpeedExplosiveTrainingApp() {
                 <Button className="rounded-2xl" onClick={() => setWeekNumber((w) => w + 1)}>+</Button>
               </div>
               <div className="mt-3 rounded-2xl bg-white/10 p-3">
-                <div className="mb-2 flex items-center justify-between gap-2 text-slate-300"><div className="flex items-center gap-2"><Layers3 className="h-4 w-4" /> Plan Library</div><span className="text-xs text-slate-400">Active: {currentTrainingPlan.name}</span></div>
-                <div className="grid gap-2">
-                  {Object.values(trainingPlans).map((trainingPlan) => (
-                    <button
-                      key={trainingPlan.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedPlanId(trainingPlan.id);
-                        setSelectedDay("Mon");
-                        setExpandedDrills({});
-                        setTimerPresetIndex(0);
-                        setTimerRunning(false);
-                      }}
-                      className={`rounded-2xl border px-3 py-3 text-left transition ${selectedPlanId === trainingPlan.id ? "border-white bg-white text-slate-900" : "border-white/20 bg-white/5 text-white hover:bg-white/10"}`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="font-semibold">{trainingPlan.name}</div>
-                        <span className={`rounded-full px-2 py-1 text-xs ${selectedPlanId === trainingPlan.id ? "bg-slate-900 text-white" : "bg-white/10 text-slate-200"}`}>{trainingPlan.category}</span>
-                      </div>
-                      <div className={`mt-1 text-xs ${selectedPlanId === trainingPlan.id ? "text-slate-600" : "text-slate-300"}`}>{trainingPlan.description}</div>
-                    </button>
-                  ))}
+                <div className="mb-2 flex items-center justify-between gap-2 text-slate-300">
+                  <div className="flex items-center gap-2"><Layers3 className="h-4 w-4" /> Plan Library</div>
+                  <span className="text-xs text-slate-400">Active: {currentTrainingPlan.name}</span>
                 </div>
+                <select
+                  value={selectedPlanId}
+                  onChange={(e) => {
+                    const nextId = e.target.value;
+                    setSelectedPlanId(nextId);
+                    setSelectedDay("Mon");
+                    setExpandedDrills({});
+                    setTimerPresetIndex(0);
+                    setTimerRunning(false);
+                  }}
+                  className="w-full rounded-2xl border border-white/20 bg-white px-3 py-3 text-slate-900"
+                >
+                  {Object.values(trainingPlans).map((trainingPlan) => (
+                    <option key={trainingPlan.id} value={trainingPlan.id}>
+                      {trainingPlan.name} · {trainingPlan.category}
+                    </option>
+                  ))}
+                </select>
+                <div className="mt-2 text-xs text-slate-300">{currentTrainingPlan.description}</div>
               </div>
             </div>
           </div>
