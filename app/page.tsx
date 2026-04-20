@@ -568,7 +568,7 @@ export default function SpeedExplosiveTrainingApp() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-md pb-24">
         <div className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
-          <div className="p-4">
+          <div className="p-4" key={selectedPlanId}>
             <div className="rounded-3xl bg-slate-900 p-4 text-white shadow-lg">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -601,8 +601,10 @@ export default function SpeedExplosiveTrainingApp() {
                       type="button"
                       onClick={() => {
                         setSelectedPlanId(trainingPlan.id);
-                        setSelectedDay(todayToDayKey());
+                        setSelectedDay("Mon");
                         setExpandedDrills({});
+                        setTimerPresetIndex(0);
+                        setTimerRunning(false);
                       }}
                       className={`rounded-2xl border px-3 py-3 text-left transition ${selectedPlanId === trainingPlan.id ? "border-white bg-white text-slate-900" : "border-white/20 bg-white/5 text-white hover:bg-white/10"}`}
                     >
@@ -620,7 +622,7 @@ export default function SpeedExplosiveTrainingApp() {
         </div>
 
         <div className="p-4">
-          <Tabs defaultValue="today" className="w-full">
+          <Tabs key={selectedPlanId} defaultValue="today" className="w-full">
             <TabsList className="grid w-full grid-cols-3 rounded-2xl">
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="metrics">Metrics</TabsTrigger>
@@ -630,6 +632,7 @@ export default function SpeedExplosiveTrainingApp() {
             <TabsContent value="today" className="mt-4 space-y-4">
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader className="pb-3">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Active plan: {currentTrainingPlan.name}</div>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <CardTitle className="text-xl">{dayPlan.title}</CardTitle>
