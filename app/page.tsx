@@ -9,39 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  CheckCircle2,
-  Dumbbell,
-  Footprints,
-  Timer,
-  Trophy,
-  Zap,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  BarChart3,
-  Medal,
-  Play,
-  Pause,
-  RotateCcw,
-  TrendingUp,
-  Target,
-  CalendarDays,
-  Flame,
-  Crown,
-  Sparkles,
-  Gauge,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
+import { CheckCircle2, Dumbbell, Footprints, Timer, Trophy, Zap, ExternalLink, ChevronDown, ChevronUp, BarChart3, Medal, Play, Pause, RotateCcw } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -216,10 +185,6 @@ function formatSeconds(totalSeconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-function clampNumber(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
 export default function SpeedExplosiveTrainingApp() {
   const [selectedDay, setSelectedDay] = useState<DayKey>(todayToDayKey());
   const [weekNumber, setWeekNumber] = useState<number>(() => loadState<number>("weekNumber", 1));
@@ -281,7 +246,7 @@ export default function SpeedExplosiveTrainingApp() {
       setTimerPhase((prevPhase) => {
         if (timerSecondsLeft > 1) return prevPhase;
         if (prevPhase === "work") return "rest";
-        return "work";
+        return timerRoundsLeft > 1 ? "work" : "work";
       });
 
       if (timerSecondsLeft <= 1 && timerPhase === "rest") {
@@ -384,22 +349,6 @@ export default function SpeedExplosiveTrainingApp() {
       .sort((a, b) => a.weekNumber - b.weekNumber);
   }, [metricData, chartMetricKey]);
 
-  const completedToday = Object.values(todayLog || {}).filter((x) => x?.done).length;
-  const totalPRs = Object.values(personalRecords).filter((v) => v !== null).length;
-  const topImprovement = metricSummary
-    .filter((m) => m.percent !== null && !Number.isNaN(m.percent ?? NaN))
-    .sort((a, b) => Math.abs((b.percent ?? 0)) - Math.abs((a.percent ?? 0)))[0];
-
-  const readinessScore = clampNumber(
-    Math.round(
-      completionPct * 0.4 +
-        (totalPRs > 0 ? 20 : 0) +
-        (topImprovement?.percent && topImprovement.percent > 0 ? Math.min(25, topImprovement.percent) : 0)
-    ),
-    0,
-    100
-  );
-
   const resetTimer = () => {
     setTimerRunning(false);
     setTimerPhase("work");
@@ -412,96 +361,42 @@ export default function SpeedExplosiveTrainingApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-100 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-md pb-24">
-        <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <div className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
           <div className="p-4">
-            <div className="overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 p-5 text-white shadow-2xl shadow-blue-950/40">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                    <Sparkles className="h-3.5 w-3.5" /> Performance Dashboard
-                  </div>
-                  <h1 className="text-3xl font-black tracking-tight">{athlete}</h1>
-                  <p className="mt-1 text-sm text-blue-100">Soccer + lacrosse off-season speed development</p>
-                </div>
-                <Badge className="rounded-full border-0 bg-white/15 px-3 py-1 text-sm text-white">Week {weekNumber}</Badge>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Speed and Explosive Training</p>
+                <h1 className="text-2xl font-bold">{athlete}</h1>
               </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-blue-100">
-                    <CalendarDays className="h-4 w-4" /> Today
-                  </div>
-                  <div className="mt-2 text-base font-bold">{dayPlan.title}</div>
-                  <div className="mt-1 text-xs text-blue-100">{completedToday}/{dayPlan.drills.length} drills marked</div>
-                </div>
-                <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-blue-100">
-                    <Gauge className="h-4 w-4" /> Readiness
-                  </div>
-                  <div className="mt-2 text-2xl font-black">{readinessScore}</div>
-                  <div className="mt-1 text-xs text-blue-100">Composite coach snapshot</div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex gap-2">
-                <Input value={athlete} onChange={(e) => setAthlete(e.target.value)} placeholder="Athlete name" className="rounded-2xl border-white/20 bg-white/10 text-white placeholder:text-blue-100" />
-                <Button variant="outline" className="rounded-2xl border-white/20 bg-white/10 text-white hover:bg-white/20" onClick={() => setWeekNumber((w) => Math.max(1, w - 1))}>-</Button>
-                <Button className="rounded-2xl bg-white text-slate-900 hover:bg-blue-50" onClick={() => setWeekNumber((w) => w + 1)}>+</Button>
-              </div>
+              <Badge className="rounded-full px-3 py-1 text-sm">Week {weekNumber}</Badge>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Input value={athlete} onChange={(e) => setAthlete(e.target.value)} placeholder="Athlete name" className="rounded-2xl" />
+              <Button variant="outline" className="rounded-2xl" onClick={() => setWeekNumber((w) => Math.max(1, w - 1))}>-</Button>
+              <Button className="rounded-2xl" onClick={() => setWeekNumber((w) => w + 1)}>+</Button>
             </div>
           </div>
         </div>
 
         <div className="p-4">
-          <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Card className="rounded-3xl border-0 bg-white/90 shadow-xl shadow-slate-900/10 backdrop-blur">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><Target className="h-4 w-4" /> Completion</div>
-                <div className="mt-2 text-2xl font-black text-slate-900">{completionPct}%</div>
-                <Progress value={completionPct} className="mt-3" />
-              </CardContent>
-            </Card>
-            <Card className="rounded-3xl border-0 bg-white/90 shadow-xl shadow-slate-900/10 backdrop-blur">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><Medal className="h-4 w-4" /> PRs Tracked</div>
-                <div className="mt-2 text-2xl font-black text-slate-900">{totalPRs}</div>
-                <div className="mt-1 text-xs text-slate-500">Metrics with records saved</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-3xl border-0 bg-white/90 shadow-xl shadow-slate-900/10 backdrop-blur">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><TrendingUp className="h-4 w-4" /> Top Trend</div>
-                <div className="mt-2 text-base font-black text-slate-900">{topImprovement ? topImprovement.label : "Waiting"}</div>
-                <div className="mt-1 text-xs text-slate-500">{topImprovement?.percent !== null && topImprovement?.percent !== undefined ? `${Math.abs(topImprovement.percent).toFixed(1)}% change` : "Add weekly scores"}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-3xl border-0 bg-white/90 shadow-xl shadow-slate-900/10 backdrop-blur">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><Flame className="h-4 w-4" /> Coach Note</div>
-                <div className="mt-2 text-base font-black text-slate-900">{isCurrentWeekPR ? "New PR" : readinessScore >= 75 ? "Strong Week" : "Keep Building"}</div>
-                <div className="mt-1 text-xs text-slate-500">{isCurrentWeekPR ? "This week hit a record." : "Focus on quality reps and full rest."}</div>
-              </CardContent>
-            </Card>
-          </div>
-
           <Tabs defaultValue="today" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 rounded-2xl border border-white/20 bg-white/80 p-1 shadow-lg backdrop-blur">
-              <TabsTrigger value="today" className="rounded-2xl">Today</TabsTrigger>
-              <TabsTrigger value="metrics" className="rounded-2xl">Metrics</TabsTrigger>
-              <TabsTrigger value="plan" className="rounded-2xl">Plan</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 rounded-2xl">
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="metrics">Metrics</TabsTrigger>
+              <TabsTrigger value="plan">Plan</TabsTrigger>
             </TabsList>
 
             <TabsContent value="today" className="mt-4 space-y-4">
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <Card className="rounded-3xl shadow-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle className="text-2xl">{dayPlan.title}</CardTitle>
+                      <CardTitle className="text-xl">{dayPlan.title}</CardTitle>
                       <p className="mt-1 text-sm text-slate-600">{dayPlan.focus}</p>
                     </div>
-                    <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-3 text-white shadow-lg"><Zap className="h-5 w-5" /></div>
+                    <div className="rounded-2xl bg-slate-100 p-3"><Zap className="h-5 w-5" /></div>
                   </div>
                   <div className="mt-3">
                     <div className="mb-2 flex items-center justify-between text-sm">
@@ -512,7 +407,7 @@ export default function SpeedExplosiveTrainingApp() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-4 overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 p-4 text-white shadow-xl">
+                  <div className="mb-4 rounded-3xl border bg-slate-50 p-4">
                     <div className="mb-3 flex items-center gap-2">
                       <Timer className="h-5 w-5" />
                       <div className="font-semibold">Interval Timer</div>
@@ -523,7 +418,7 @@ export default function SpeedExplosiveTrainingApp() {
                           key={preset.label}
                           size="sm"
                           variant={timerPresetIndex === idx ? "default" : "outline"}
-                          className={timerPresetIndex === idx ? "rounded-2xl bg-white text-slate-900 hover:bg-slate-100" : "rounded-2xl border-white/20 bg-white/10 text-white hover:bg-white/20"}
+                          className="rounded-2xl"
                           onClick={() => setTimerPresetIndex(idx)}
                         >
                           {preset.label}
@@ -531,28 +426,28 @@ export default function SpeedExplosiveTrainingApp() {
                       ))}
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-                        <div className="text-xs text-blue-100">Phase</div>
+                      <div className="rounded-2xl bg-white p-3">
+                        <div className="text-xs text-slate-500">Phase</div>
                         <div className="mt-1 font-semibold capitalize">{timerPhase}</div>
                       </div>
-                      <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-                        <div className="text-xs text-blue-100">Time</div>
-                        <div className="mt-1 text-2xl font-black">{formatSeconds(timerSecondsLeft)}</div>
+                      <div className="rounded-2xl bg-white p-3">
+                        <div className="text-xs text-slate-500">Time</div>
+                        <div className="mt-1 text-xl font-bold">{formatSeconds(timerSecondsLeft)}</div>
                       </div>
-                      <div className="rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
-                        <div className="text-xs text-blue-100">Rounds Left</div>
+                      <div className="rounded-2xl bg-white p-3">
+                        <div className="text-xs text-slate-500">Rounds Left</div>
                         <div className="mt-1 font-semibold">{timerRoundsLeft}</div>
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
-                      <Button className="rounded-2xl bg-white text-slate-900 hover:bg-slate-100" onClick={() => setTimerRunning((prev) => !prev)}>
+                      <Button className="rounded-2xl" onClick={() => setTimerRunning((prev) => !prev)}>
                         {timerRunning ? <Pause className="mr-1 h-4 w-4" /> : <Play className="mr-1 h-4 w-4" />} {timerRunning ? "Pause" : "Start"}
                       </Button>
-                      <Button variant="outline" className="rounded-2xl border-white/20 bg-white/10 text-white hover:bg-white/20" onClick={resetTimer}>
+                      <Button variant="outline" className="rounded-2xl" onClick={resetTimer}>
                         <RotateCcw className="mr-1 h-4 w-4" /> Reset
                       </Button>
                     </div>
-                    <div className="mt-2 text-sm text-blue-100">
+                    <div className="mt-2 text-sm text-slate-500">
                       {currentPreset.work}s work / {currentPreset.rest}s rest for {currentPreset.rounds} rounds
                     </div>
                   </div>
@@ -564,7 +459,7 @@ export default function SpeedExplosiveTrainingApp() {
                           <Button
                             key={d}
                             variant={selectedDay === d ? "default" : "outline"}
-                            className={selectedDay === d ? "rounded-2xl bg-slate-900 text-white" : "rounded-2xl"}
+                            className="rounded-2xl"
                             onClick={() => setSelectedDay(d)}
                           >
                             {d}
@@ -576,27 +471,27 @@ export default function SpeedExplosiveTrainingApp() {
                         const entry: DrillLogEntry = todayLog[drill.name] || {};
                         const expanded = !!expandedDrills[drill.name];
                         return (
-                          <Card key={drill.name} className="rounded-[28px] border border-slate-200 bg-white shadow-lg shadow-slate-900/5 transition-all hover:shadow-xl">
+                          <Card key={drill.name} className="rounded-3xl border-slate-200">
                             <CardContent className="p-4">
                               <div className="mb-3 flex items-start justify-between gap-3">
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">#{idx + 1}</span>
-                                    <h3 className="font-semibold text-slate-900">{drill.name}</h3>
+                                    <span className="text-sm font-semibold text-slate-500">#{idx + 1}</span>
+                                    <h3 className="font-semibold">{drill.name}</h3>
                                   </div>
                                   <p className="mt-1 text-sm text-slate-500">Target: {drill.target}</p>
                                 </div>
                                 <Button
                                   variant={entry.done ? "default" : "outline"}
                                   size="sm"
-                                  className={entry.done ? "rounded-full bg-green-600 hover:bg-green-700" : "rounded-full"}
+                                  className="rounded-full"
                                   onClick={() => updateDrill(drill.name, "done", !entry.done)}
                                 >
                                   <CheckCircle2 className="mr-1 h-4 w-4" /> {entry.done ? "Done" : "Mark"}
                                 </Button>
                               </div>
 
-                              <div className="rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50 p-3 text-sm text-slate-700">
+                              <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
                                 <div className="font-medium text-slate-900">Quick cue</div>
                                 <div className="mt-1">{drill.cue}</div>
                               </div>
@@ -624,12 +519,41 @@ export default function SpeedExplosiveTrainingApp() {
                               )}
 
                               <div className="mt-3 grid grid-cols-2 gap-2">
-                                <Input inputMode="decimal" placeholder="Set / Rep 1" value={entry.set1 || ""} onChange={(e) => updateDrill(drill.name, "set1", e.target.value)} className="rounded-2xl" />
-                                <Input inputMode="decimal" placeholder="Set / Rep 2" value={entry.set2 || ""} onChange={(e) => updateDrill(drill.name, "set2", e.target.value)} className="rounded-2xl" />
-                                <Input inputMode="decimal" placeholder="Set / Rep 3" value={entry.set3 || ""} onChange={(e) => updateDrill(drill.name, "set3", e.target.value)} className="rounded-2xl" />
-                                <Input inputMode="decimal" placeholder="Best result" value={entry.best || ""} onChange={(e) => updateDrill(drill.name, "best", e.target.value)} className="rounded-2xl" />
+                                <Input
+                                  inputMode="decimal"
+                                  placeholder="Set / Rep 1"
+                                  value={entry.set1 || ""}
+                                  onChange={(e) => updateDrill(drill.name, "set1", e.target.value)}
+                                  className="rounded-2xl"
+                                />
+                                <Input
+                                  inputMode="decimal"
+                                  placeholder="Set / Rep 2"
+                                  value={entry.set2 || ""}
+                                  onChange={(e) => updateDrill(drill.name, "set2", e.target.value)}
+                                  className="rounded-2xl"
+                                />
+                                <Input
+                                  inputMode="decimal"
+                                  placeholder="Set / Rep 3"
+                                  value={entry.set3 || ""}
+                                  onChange={(e) => updateDrill(drill.name, "set3", e.target.value)}
+                                  className="rounded-2xl"
+                                />
+                                <Input
+                                  inputMode="decimal"
+                                  placeholder="Best result"
+                                  value={entry.best || ""}
+                                  onChange={(e) => updateDrill(drill.name, "best", e.target.value)}
+                                  className="rounded-2xl"
+                                />
                               </div>
-                              <Textarea placeholder="Notes" value={entry.notes || ""} onChange={(e) => updateDrill(drill.name, "notes", e.target.value)} className="mt-2 min-h-[70px] rounded-2xl" />
+                              <Textarea
+                                placeholder="Notes"
+                                value={entry.notes || ""}
+                                onChange={(e) => updateDrill(drill.name, "notes", e.target.value)}
+                                className="mt-2 min-h-[70px] rounded-2xl"
+                              />
                             </CardContent>
                           </Card>
                         );
@@ -641,27 +565,7 @@ export default function SpeedExplosiveTrainingApp() {
             </TabsContent>
 
             <TabsContent value="metrics" className="mt-4 space-y-4">
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Crown className="h-5 w-5 text-amber-500" /> Coach Dashboard</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 p-4 text-white shadow-lg">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/80"><Flame className="h-4 w-4" /> Best Signal</div>
-                      <div className="mt-2 text-lg font-black">{topImprovement ? topImprovement.label : "No Trend Yet"}</div>
-                      <div className="mt-1 text-sm text-white/85">{topImprovement?.percent !== null && topImprovement?.percent !== undefined ? `${Math.abs(topImprovement.percent).toFixed(1)}% movement` : "Add weekly scores to unlock insights"}</div>
-                    </div>
-                    <div className="rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 p-4 text-white shadow-lg">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/80"><Medal className="h-4 w-4" /> Current Status</div>
-                      <div className="mt-2 text-lg font-black">{isCurrentWeekPR ? "PR Week" : readinessScore >= 75 ? "On Track" : "Building Phase"}</div>
-                      <div className="mt-1 text-sm text-white/85">{isCurrentWeekPR ? "A new record was hit this week." : "Use this view to spot momentum and gaps."}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Weekly Performance</CardTitle>
                 </CardHeader>
@@ -671,16 +575,22 @@ export default function SpeedExplosiveTrainingApp() {
                     const currentValue = metricData?.[weekNumber]?.[metric.key];
                     const isPR = currentValue !== undefined && currentValue !== "" && pr !== null && Number(currentValue) === pr;
                     return (
-                      <div key={metric.key} className="rounded-3xl border border-slate-200 bg-gradient-to-r from-white to-slate-50 p-4 shadow-sm">
+                      <div key={metric.key} className="rounded-2xl border p-3">
                         <div className="mb-2 flex items-center justify-between gap-2">
                           <p className="text-sm font-medium text-slate-700">{metric.label}{metric.unit ? ` (${metric.unit})` : ""}</p>
                           {pr !== null ? (
-                            <Badge variant="outline" className="rounded-full bg-white">
+                            <Badge variant="outline" className="rounded-full">
                               <Medal className="mr-1 h-3.5 w-3.5" /> PR {pr}
                             </Badge>
                           ) : null}
                         </div>
-                        <Input inputMode="decimal" placeholder="Enter best weekly result" value={currentValue || ""} onChange={(e) => updateMetric(metric.key, e.target.value)} className="rounded-2xl" />
+                        <Input
+                          inputMode="decimal"
+                          placeholder="Enter best weekly result"
+                          value={currentValue || ""}
+                          onChange={(e) => updateMetric(metric.key, e.target.value)}
+                          className="rounded-2xl"
+                        />
                         {isPR ? <div className="mt-2 text-sm font-medium text-green-600">New personal record</div> : null}
                       </div>
                     );
@@ -688,14 +598,20 @@ export default function SpeedExplosiveTrainingApp() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" /> Improvement Graph</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
                     {defaultMetrics.map((metric) => (
-                      <Button key={metric.key} size="sm" variant={chartMetricKey === metric.key ? "default" : "outline"} className={chartMetricKey === metric.key ? "rounded-2xl bg-slate-900 text-white" : "rounded-2xl"} onClick={() => setChartMetricKey(metric.key)}>
+                      <Button
+                        key={metric.key}
+                        size="sm"
+                        variant={chartMetricKey === metric.key ? "default" : "outline"}
+                        className="rounded-2xl"
+                        onClick={() => setChartMetricKey(metric.key)}
+                      >
                         {metric.label}
                       </Button>
                     ))}
@@ -705,9 +621,9 @@ export default function SpeedExplosiveTrainingApp() {
                       Tracking: <span className="font-medium text-slate-900">{selectedMetric.label}</span>
                       {selectedMetric.better === "lower" ? " · lower is better" : " · higher is better"}
                     </div>
-                    {chartPR !== null ? <Badge variant="outline" className="rounded-full bg-white">PR {chartPR}</Badge> : null}
+                    {chartPR !== null ? <Badge variant="outline" className="rounded-full">PR {chartPR}</Badge> : null}
                   </div>
-                  <div className="h-64 w-full rounded-3xl bg-gradient-to-br from-slate-50 to-blue-50 p-3">
+                  <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -715,7 +631,7 @@ export default function SpeedExplosiveTrainingApp() {
                         <YAxis />
                         <Tooltip />
                         <ReferenceLine y={chartPR ?? undefined} strokeDasharray="4 4" label={chartPR !== null ? "PR" : undefined} />
-                        <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={4} dot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -726,9 +642,9 @@ export default function SpeedExplosiveTrainingApp() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Progress Snapshot</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Timer className="h-5 w-5" /> Progress Snapshot</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {metricSummary.map((m) => {
@@ -737,17 +653,21 @@ export default function SpeedExplosiveTrainingApp() {
                       const direction = m.trend > 0 ? "Improved" : m.trend === 0 ? "No change" : "Down";
                       const absTrend = Math.abs(m.trend).toFixed(2);
                       const percentText = m.percent !== null ? ` · ${Math.abs(m.percent).toFixed(1)}%` : "";
-                      text = direction === "No change" ? "No change" : `${direction} by ${absTrend}${m.unit ? ` ${m.unit}` : ""}${percentText}`;
+                      text = direction === "No change"
+                        ? "No change"
+                        : `${direction} by ${absTrend}${m.unit ? ` ${m.unit}` : ""}${percentText}`;
                     }
                     return (
-                      <div key={m.key} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-gradient-to-r from-white to-slate-50 p-4 shadow-sm">
+                      <div key={m.key} className="flex items-center justify-between rounded-2xl border p-3">
                         <div>
                           <p className="font-medium">{m.label}</p>
                           <p className="text-sm text-slate-500">{text}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {personalRecords[m.key] !== null ? <Badge variant="secondary" className="rounded-full">PR {personalRecords[m.key]}</Badge> : null}
-                          <Badge variant="outline" className="rounded-full bg-white">{metricData?.[weekNumber]?.[m.key] || "--"}</Badge>
+                          {personalRecords[m.key] !== null ? (
+                            <Badge variant="secondary" className="rounded-full">PR {personalRecords[m.key]}</Badge>
+                          ) : null}
+                          <Badge variant="outline" className="rounded-full">{metricData?.[weekNumber]?.[m.key] || "--"}</Badge>
                         </div>
                       </div>
                     );
@@ -757,13 +677,13 @@ export default function SpeedExplosiveTrainingApp() {
             </TabsContent>
 
             <TabsContent value="plan" className="mt-4 space-y-4">
-              <Card className="rounded-[28px] border-0 bg-white/95 shadow-2xl shadow-slate-900/10 backdrop-blur">
+              <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Footprints className="h-5 w-5" /> Weekly Plan</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {days.map((day) => (
-                    <Card key={day} className="rounded-[28px] border border-slate-200 bg-white shadow-lg shadow-slate-900/5">
+                    <Card key={day} className="rounded-3xl border-slate-200">
                       <CardContent className="p-4">
                         <div className="mb-2 flex items-center justify-between">
                           <div>
@@ -771,14 +691,14 @@ export default function SpeedExplosiveTrainingApp() {
                             <p className="text-sm text-slate-500">{plan[day].focus}</p>
                           </div>
                           {day === "Mon" || day === "Thu" || day === "Fri" ? (
-                            <Badge className="rounded-full bg-slate-900"><Zap className="mr-1 h-3.5 w-3.5" /> Speed</Badge>
+                            <Badge className="rounded-full"><Zap className="mr-1 h-3.5 w-3.5" /> Speed</Badge>
                           ) : day === "Wed" ? (
                             <Badge variant="secondary" className="rounded-full"><Dumbbell className="mr-1 h-3.5 w-3.5" /> Strength</Badge>
                           ) : null}
                         </div>
                         <div className="space-y-2">
                           {plan[day].drills.map((d) => (
-                            <div key={d.name} className="rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50 p-3">
+                            <div key={d.name} className="rounded-2xl bg-slate-50 p-3">
                               <div className="flex items-center justify-between gap-3">
                                 <p className="font-medium">{d.name}</p>
                                 <span className="text-sm text-slate-500">{d.target}</span>
