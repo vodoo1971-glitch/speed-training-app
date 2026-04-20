@@ -400,7 +400,7 @@ export default function SpeedExplosiveTrainingApp() {
   const logKey = `${selectedPlanId}-week${weekNumber}-${selectedDay}`;
   const metricWeekKey = `${selectedPlanId}-week${weekNumber}`;
   const todayLog: DayLog = logData[logKey] || {};
-  const [chartMetricKey, setChartMetricKey] = useState<string>(activeMetrics[0]?.key || "");
+  const [chartMetricKey, setChartMetricKey] = useState<string>(trainingPlans[selectedPlanId]?.metrics[0]?.key || "10yd");
 
   useEffect(() => saveState("weekNumber", weekNumber), [weekNumber]);
   useEffect(() => saveState("trainingLogV2", logData), [logData]);
@@ -409,11 +409,12 @@ export default function SpeedExplosiveTrainingApp() {
   useEffect(() => saveState("selectedPlanId", selectedPlanId), [selectedPlanId]);
 
   useEffect(() => {
-    setChartMetricKey(activeMetrics[0]?.key || "");
+    const nextPlan = trainingPlans[selectedPlanId] || trainingPlans.speed_explosive;
+    setChartMetricKey(nextPlan.metrics[0]?.key || "10yd");
     setTimerPresetIndex(0);
     setTimerPhase("work");
-    setTimerRoundsLeft(activeTimerPresets[0]?.rounds || 0);
-    setTimerSecondsLeft(activeTimerPresets[0]?.work || 0);
+    setTimerRoundsLeft(nextPlan.timerPresets[0]?.rounds || 0);
+    setTimerSecondsLeft(nextPlan.timerPresets[0]?.work || 0);
     setTimerRunning(false);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -592,12 +593,17 @@ export default function SpeedExplosiveTrainingApp() {
                 <Button className="rounded-2xl" onClick={() => setWeekNumber((w) => w + 1)}>+</Button>
               </div>
               <div className="mt-3 rounded-2xl bg-white/10 p-3">
-                <div className="mb-2 flex items-center gap-2 text-slate-300"><Layers3 className="h-4 w-4" /> Plan Library</div>
+                <div className="mb-2 flex items-center justify-between gap-2 text-slate-300"><div className="flex items-center gap-2"><Layers3 className="h-4 w-4" /> Plan Library</div><span className="text-xs text-slate-400">Active: {currentTrainingPlan.name}</span></div>
                 <div className="grid gap-2">
                   {Object.values(trainingPlans).map((trainingPlan) => (
                     <button
                       key={trainingPlan.id}
-                      onClick={() => setSelectedPlanId(trainingPlan.id)}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlanId(trainingPlan.id);
+                        setSelectedDay(todayToDayKey());
+                        setExpandedDrills({});
+                      }}
                       className={`rounded-2xl border px-3 py-3 text-left transition ${selectedPlanId === trainingPlan.id ? "border-white bg-white text-slate-900" : "border-white/20 bg-white/5 text-white hover:bg-white/10"}`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -831,4 +837,3 @@ export default function SpeedExplosiveTrainingApp() {
     </div>
   );
 }
-
