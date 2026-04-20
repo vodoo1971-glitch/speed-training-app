@@ -9,12 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckCircle2, Dumbbell, Footprints, Timer, Trophy, Zap } from "lucide-react";
+import { CheckCircle2, Dumbbell, Footprints, Timer, Trophy, Zap, ExternalLink, ChevronDown, ChevronUp, BarChart3 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+
+type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
 type Drill = {
   name: string;
   target: string;
   cue: string;
+  details: string;
+  why: string;
+  videoQuery: string;
 };
 
 type DayPlan = {
@@ -27,6 +33,7 @@ type Metric = {
   key: string;
   label: string;
   better: "lower" | "higher";
+  unit?: string;
 };
 
 type DrillLogEntry = {
@@ -43,100 +50,99 @@ type LogData = Record<string, DayLog>;
 type MetricWeekData = Record<string, string>;
 type MetricData = Record<number, MetricWeekData>;
 
-const plan: Record<string, DayPlan> = {
+const plan: Record<DayKey, DayPlan> = {
   Mon: {
     title: "Speed + Lower Strength",
     focus: "Acceleration and lower-body power",
     drills: [
-      { name: "A-Skips", target: "2 x 20 yd", cue: "Drive knee up, stay tall, use active arm swing." },
-      { name: "High Knees", target: "2 x 20 yd", cue: "Quick contacts, hips tall, knees punch up." },
-      { name: "10 yd Sprint", target: "6 reps", cue: "Explode out low and push the ground away." },
-      { name: "20 yd Sprint", target: "4 reps", cue: "Stay smooth through the first 10 yards." },
-      { name: "30 yd Sprint", target: "2 reps", cue: "Accelerate gradually, do not reach with your feet." },
-      { name: "Goblet Squat", target: "3 x 10", cue: "Chest up, elbows in, sit between hips." },
-      { name: "Reverse Lunge", target: "3 x 8/leg", cue: "Step back softly, front foot flat, torso tall." },
-      { name: "Single-Leg RDL", target: "3 x 8/leg", cue: "Hinge from the hip, keep back flat, balance first." },
-      { name: "Broad Jump", target: "3 x 5", cue: "Load hips, swing arms, land softly and stick it." },
+      { name: "A-Skips", target: "2 x 20 yd", cue: "Drive knee up, stay tall, use active arm swing.", details: "Skip forward with one knee driving up while the opposite arm swings. Land softly on the ball of the foot and keep your posture tall.", why: "Improves sprint rhythm, posture, and front-side mechanics.", videoQuery: "A skips sprint drill proper form" },
+      { name: "High Knees", target: "2 x 20 yd", cue: "Quick contacts, hips tall, knees punch up.", details: "Run in place or forward with fast feet and knees rising to waist height. Keep elbows bent and pump arms naturally.", why: "Builds turnover and better sprint posture.", videoQuery: "high knees sprint drill proper form" },
+      { name: "10 yd Sprint", target: "6 reps", cue: "Explode out low and push the ground away.", details: "Start in an athletic stance, lean forward, and attack the first few steps. Focus on power, not reaching.", why: "Improves acceleration, the most important speed quality for field sports.", videoQuery: "10 yard sprint acceleration drill technique" },
+      { name: "20 yd Sprint", target: "4 reps", cue: "Stay smooth through the first 10 yards.", details: "Explode out, then gradually rise into a smooth sprint. Keep arms violent and steps powerful.", why: "Builds transition from acceleration into open speed.", videoQuery: "20 yard sprint technique acceleration mechanics" },
+      { name: "30 yd Sprint", target: "2 reps", cue: "Accelerate gradually, do not reach with your feet.", details: "Stay relaxed after the first 10 yards and let speed build. Keep shoulders loose and eyes forward.", why: "Builds max speed mechanics while staying efficient.", videoQuery: "30 yard sprint mechanics youth athlete" },
+      { name: "Goblet Squat", target: "3 x 10", cue: "Chest up, elbows in, sit between hips.", details: "Hold the kettlebell at chest height, keep feet about shoulder width, sit down between the knees, and stand up under control.", why: "Builds lower-body strength that supports sprinting and cutting.", videoQuery: "goblet squat kettlebell proper form" },
+      { name: "Reverse Lunge", target: "3 x 8/leg", cue: "Step back softly, front foot flat, torso tall.", details: "Step backward into a lunge, lower under control, and drive back through the front leg.", why: "Builds single-leg strength and balance for sport movement.", videoQuery: "reverse lunge proper form athlete" },
+      { name: "Single-Leg RDL", target: "3 x 8/leg", cue: "Hinge from the hip, keep back flat, balance first.", details: "Stand on one leg, hinge forward with a flat back, and let the free leg move back as a counterbalance.", why: "Strengthens hamstrings and glutes, which are critical for sprint speed.", videoQuery: "single leg rdl kettlebell proper form" },
+      { name: "Broad Jump", target: "3 x 5", cue: "Load hips, swing arms, land softly and stick it.", details: "Start in an athletic stance, swing arms back, explode forward, and land with knees bent and balanced.", why: "Improves horizontal power and first-step explosiveness.", videoQuery: "broad jump proper form athlete" },
     ],
   },
   Tue: {
     title: "Agility + Conditioning + Skills",
     focus: "Footwork, change of direction, sport skill",
     drills: [
-      { name: "Ladder Drills", target: "4 rounds", cue: "Light feet, clean rhythm, do not clip the ladder." },
-      { name: "Cone Zig-Zag Cuts", target: "4 reps", cue: "Drop hips before cuts and push off outside foot." },
-      { name: "5-10-5 Shuttle", target: "3 reps", cue: "Stay low and violent out of each turn." },
-      { name: "Sprint / Walk Intervals", target: "10 rounds", cue: "20 sec hard, 40 sec walk. Stay consistent." },
-      { name: "Soccer Ball Control", target: "10 min", cue: "Small touches, both feet, head up when possible." },
-      { name: "Lacrosse Wall Ball", target: "10 min", cue: "Both hands, quick release, clean catches." },
+      { name: "Ladder Drills", target: "4 rounds", cue: "Light feet, clean rhythm, do not clip the ladder.", details: "Move through the ladder with short, quick contacts. Start slow and get faster only if footwork stays clean.", why: "Improves coordination and quick feet.", videoQuery: "agility ladder drills youth athlete" },
+      { name: "Cone Zig-Zag Cuts", target: "4 reps", cue: "Drop hips before cuts and push off outside foot.", details: "Sprint to each cone, sink hips, plant outside foot, and explode in the new direction.", why: "Builds cutting mechanics for soccer and lacrosse.", videoQuery: "zig zag cone agility drill proper form" },
+      { name: "5-10-5 Shuttle", target: "3 reps", cue: "Stay low and violent out of each turn.", details: "Start in the middle, sprint 5 yards, change direction, go 10 yards, then finish 5 yards back through the middle.", why: "Tests and trains change-of-direction speed.", videoQuery: "5-10-5 shuttle drill technique" },
+      { name: "Sprint / Walk Intervals", target: "10 rounds", cue: "20 sec hard, 40 sec walk. Stay consistent.", details: "Sprint hard for 20 seconds, then walk for 40 seconds. Keep every work interval honest.", why: "Improves conditioning without long slow running.", videoQuery: "sprint walk intervals conditioning" },
+      { name: "Soccer Ball Control", target: "10 min", cue: "Small touches, both feet, head up when possible.", details: "Dribble in tight space, alternate feet, and work on quick control touches.", why: "Improves confidence on the ball and first touch.", videoQuery: "soccer ball control drills youth" },
+      { name: "Lacrosse Wall Ball", target: "10 min", cue: "Both hands, quick release, clean catches.", details: "Throw against a wall and receive cleanly with both hands. Mix regular throws, quick sticks, and one-handed catches if skilled enough.", why: "Builds stick skills, hand speed, and coordination.", videoQuery: "lacrosse wall ball drills youth" },
     ],
   },
   Wed: {
     title: "Upper Body + Core",
     focus: "Upper strength and trunk control",
     drills: [
-      { name: "Push-Ups", target: "3 x 12-20", cue: "Straight line head to heel, chest to floor." },
-      { name: "Pull-Ups / Assisted", target: "3 x 6-10", cue: "Full hang to chin over bar, no swinging." },
-      { name: "KB Overhead Press", target: "3 x 8/arm", cue: "Brace abs, press straight up, no leaning." },
-      { name: "KB Row", target: "3 x 10", cue: "Flat back, pull elbow to pocket." },
-      { name: "Plank", target: "3 x 45 sec", cue: "Squeeze glutes and ribs down." },
-      { name: "Side Plank", target: "3 x 30 sec/side", cue: "Straight line, hips high." },
-      { name: "Dead Bugs", target: "3 x 10/side", cue: "Keep low back down, move slowly." },
+      { name: "Push-Ups", target: "3 x 12-20", cue: "Straight line head to heel, chest to floor.", details: "Hands just outside shoulders, body rigid, lower under control, and press back up without sagging.", why: "Builds pressing strength and trunk stability.", videoQuery: "push up proper form athlete" },
+      { name: "Pull-Ups / Assisted", target: "3 x 6-10", cue: "Full hang to chin over bar, no swinging.", details: "Start from a dead hang, pull elbows down and back, and lower under control.", why: "Improves upper-body strength and posture.", videoQuery: "pull up proper form beginner athlete" },
+      { name: "KB Overhead Press", target: "3 x 8/arm", cue: "Brace abs, press straight up, no leaning.", details: "Hold kettlebell at shoulder, squeeze abs and glutes, and press overhead without arching the low back.", why: "Develops shoulder strength and stability.", videoQuery: "kettlebell overhead press proper form" },
+      { name: "KB Row", target: "3 x 10", cue: "Flat back, pull elbow to pocket.", details: "Hinge slightly, keep chest proud, and row the kettlebell by driving the elbow back.", why: "Builds upper-back strength for posture and contact balance.", videoQuery: "kettlebell row proper form" },
+      { name: "Plank", target: "3 x 45 sec", cue: "Squeeze glutes and ribs down.", details: "Hold a straight line from shoulders through heels. Do not let hips sag or rise too high.", why: "Builds trunk endurance for force transfer.", videoQuery: "front plank proper form" },
+      { name: "Side Plank", target: "3 x 30 sec/side", cue: "Straight line, hips high.", details: "Support yourself on one forearm and the side of one foot, stacking the body in a straight line.", why: "Improves lateral core stability for cutting and contact.", videoQuery: "side plank proper form" },
+      { name: "Dead Bugs", target: "3 x 10/side", cue: "Keep low back down, move slowly.", details: "Lie on your back, keep ribs down, and extend opposite arm and leg while keeping the trunk locked in.", why: "Teaches core control while arms and legs move.", videoQuery: "dead bug exercise proper form" },
     ],
   },
   Thu: {
     title: "Speed Endurance + Skills",
     focus: "Repeated sprint ability under control",
     drills: [
-      { name: "40 yd Sprint", target: "6 reps", cue: "75-85% effort, relaxed fast mechanics." },
-      { name: "60 yd Sprint", target: "4 reps", cue: "Build pace and stay smooth." },
-      { name: "100 yd Run", target: "2 reps", cue: "Strong but not all-out, finish tall." },
-      { name: "Sprint to Soccer Shot", target: "8 reps", cue: "Control breathing, then strike cleanly." },
-      { name: "Lacrosse Dodge to Shot", target: "8 reps", cue: "Change speed into dodge, eyes up on finish." },
+      { name: "40 yd Sprint", target: "6 reps", cue: "75-85% effort, relaxed fast mechanics.", details: "Run fast but not all-out. Stay relaxed and keep stride smooth and rhythmic.", why: "Builds repeated sprint ability without frying the nervous system.", videoQuery: "40 yard sprint mechanics athlete" },
+      { name: "60 yd Sprint", target: "4 reps", cue: "Build pace and stay smooth.", details: "Accelerate under control and try to keep posture relaxed through the middle of the sprint.", why: "Builds speed endurance and posture under fatigue.", videoQuery: "60 yard sprint technique" },
+      { name: "100 yd Run", target: "2 reps", cue: "Strong but not all-out, finish tall.", details: "Run with effort but stay composed. Focus on maintaining rhythm instead of muscling through.", why: "Helps with repeat efforts late in games.", videoQuery: "100 yard run sprint endurance drill" },
+      { name: "Sprint to Soccer Shot", target: "8 reps", cue: "Control breathing, then strike cleanly.", details: "Sprint first, gather yourself, then shoot with good technique and balance.", why: "Builds technical skill under fatigue.", videoQuery: "soccer shooting after sprint drill" },
+      { name: "Lacrosse Dodge to Shot", target: "8 reps", cue: "Change speed into dodge, eyes up on finish.", details: "Attack with speed, make a clean dodge, then shoot while staying balanced.", why: "Builds game-specific shot quality when tired.", videoQuery: "lacrosse dodge to shot drill" },
     ],
   },
   Fri: {
     title: "Explosive Power + Agility",
     focus: "Power, reaction, and lateral explosiveness",
     drills: [
-      { name: "KB Swings", target: "3 x 15", cue: "Hinge, snap hips fast, arms relaxed." },
-      { name: "Step-Ups", target: "3 x 10/leg", cue: "Drive through full foot, do not push off trailing leg." },
-      { name: "Lateral Bounds", target: "3 x 8/side", cue: "Jump wide, land balanced, own the position." },
-      { name: "Vertical Jumps", target: "3 x 5", cue: "Quick dip, violent drive, soft landing." },
-      { name: "Mirror Drill", target: "3 rounds", cue: "React, shuffle cleanly, stay low." },
-      { name: "Reaction Sprint", target: "5 reps", cue: "Move on cue, first two steps explosive." },
+      { name: "KB Swings", target: "3 x 15", cue: "Hinge, snap hips fast, arms relaxed.", details: "Push hips back, keep spine neutral, and drive the bell forward with hip snap rather than a front raise.", why: "Builds explosive hip extension that carries over to sprinting and jumping.", videoQuery: "kettlebell swing proper form" },
+      { name: "Step-Ups", target: "3 x 10/leg", cue: "Drive through full foot, do not push off trailing leg.", details: "Step onto a box or bench, stand tall, and come down under control.", why: "Builds single-leg power and control.", videoQuery: "step up exercise proper form athlete" },
+      { name: "Lateral Bounds", target: "3 x 8/side", cue: "Jump wide, land balanced, own the position.", details: "Explode sideways off one leg and land softly on the other while controlling the landing.", why: "Builds lateral explosiveness for cutting and defending.", videoQuery: "lateral bounds proper form athlete" },
+      { name: "Vertical Jumps", target: "3 x 5", cue: "Quick dip, violent drive, soft landing.", details: "Dip quickly, drive arms and hips upward, and land quietly with knees bent.", why: "Improves vertical power and general explosiveness.", videoQuery: "vertical jump technique athlete" },
+      { name: "Mirror Drill", target: "3 rounds", cue: "React, shuffle cleanly, stay low.", details: "One partner leads while the other mirrors movement side to side and forward/backward.", why: "Builds reaction speed and defensive movement.", videoQuery: "mirror drill agility exercise" },
+      { name: "Reaction Sprint", target: "5 reps", cue: "Move on cue, first two steps explosive.", details: "Start on a clap, point, or verbal cue and explode immediately into a short sprint.", why: "Turns raw speed into game-usable reaction speed.", videoQuery: "reaction sprint drill athlete" },
     ],
   },
   Sat: {
     title: "Conditioning + Small-Sided Play",
     focus: "Game conditioning and decision-making",
     drills: [
-      { name: "30/30 Intervals", target: "12 rounds", cue: "30 sec hard, 30 sec easy. Keep effort honest." },
-      { name: "Small-Sided Play", target: "20-40 min", cue: "Play fast, compete, make quick decisions." },
-      { name: "Mobility Recovery", target: "10 min", cue: "Hips, hamstrings, groin, ankles." },
+      { name: "30/30 Intervals", target: "12 rounds", cue: "30 sec hard, 30 sec easy. Keep effort honest.", details: "Push the work interval hard, then recover at an easy jog or walk for the next 30 seconds.", why: "Improves match fitness without endless running.", videoQuery: "30 30 interval training athletes" },
+      { name: "Small-Sided Play", target: "20-40 min", cue: "Play fast, compete, make quick decisions.", details: "Use smaller field or shorter numbers so touches and decisions happen constantly.", why: "One of the best ways to build sport-specific conditioning.", videoQuery: "small sided soccer games youth drills" },
+      { name: "Mobility Recovery", target: "10 min", cue: "Hips, hamstrings, groin, ankles.", details: "Move through stretches and mobility drills with controlled breathing and no forcing.", why: "Improves recovery and keeps movement quality high.", videoQuery: "lower body mobility routine athletes" },
     ],
   },
   Sun: {
     title: "Recovery",
     focus: "Rest and rebuild",
     drills: [
-      { name: "Walk / Mobility", target: "10-20 min", cue: "Light movement only. Recover for next week." },
+      { name: "Walk / Mobility", target: "10-20 min", cue: "Light movement only. Recover for next week.", details: "Take an easy walk and add light mobility work if needed. This is not a conditioning day.", why: "Recovery helps speed and power improve week to week.", videoQuery: "athlete recovery mobility routine" },
     ],
   },
 };
 
 const defaultMetrics: Metric[] = [
-  { key: "10yd", label: "10 yd Sprint (sec)", better: "lower" },
-  { key: "20yd", label: "20 yd Sprint (sec)", better: "lower" },
-  { key: "30yd", label: "30 yd Sprint (sec)", better: "lower" },
-  { key: "broad", label: "Broad Jump", better: "higher" },
-  { key: "vertical", label: "Vertical Jump", better: "higher" },
-  { key: "pushups", label: "Push-Ups Max", better: "higher" },
-  { key: "pullups", label: "Pull-Ups Max", better: "higher" },
+  { key: "10yd", label: "10 yd Sprint", better: "lower", unit: "sec" },
+  { key: "20yd", label: "20 yd Sprint", better: "lower", unit: "sec" },
+  { key: "30yd", label: "30 yd Sprint", better: "lower", unit: "sec" },
+  { key: "broad", label: "Broad Jump", better: "higher", unit: "in/ft" },
+  { key: "vertical", label: "Vertical Jump", better: "higher", unit: "in" },
+  { key: "pushups", label: "Push-Ups Max", better: "higher", unit: "reps" },
+  { key: "pullups", label: "Pull-Ups Max", better: "higher", unit: "reps" },
 ];
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-type DayKey = (typeof days)[number];
+const days: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function loadState<T>(key: string, fallback: T): T {
   try {
@@ -156,12 +162,18 @@ function todayToDayKey(): DayKey {
   return map[new Date().getDay()];
 }
 
+function videoSearchUrl(query: string): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+}
+
 export default function SpeedExplosiveTrainingApp() {
   const [selectedDay, setSelectedDay] = useState<DayKey>(todayToDayKey());
   const [weekNumber, setWeekNumber] = useState<number>(() => loadState<number>("weekNumber", 1));
   const [logData, setLogData] = useState<LogData>(() => loadState<LogData>("trainingLogV2", {}));
   const [metricData, setMetricData] = useState<MetricData>(() => loadState<MetricData>("metricDataV2", {}));
   const [athlete, setAthlete] = useState<string>(() => loadState<string>("athleteName", "Athlete"));
+  const [expandedDrills, setExpandedDrills] = useState<Record<string, boolean>>({});
+  const [chartMetricKey, setChartMetricKey] = useState<string>("10yd");
 
   useEffect(() => saveState("weekNumber", weekNumber), [weekNumber]);
   useEffect(() => saveState("trainingLogV2", logData), [logData]);
@@ -172,11 +184,7 @@ export default function SpeedExplosiveTrainingApp() {
   const logKey = `week${weekNumber}-${selectedDay}`;
   const todayLog: DayLog = logData[logKey] || {};
 
-  const updateDrill = (
-    name: string,
-    field: keyof DrillLogEntry,
-    value: string | boolean
-  ) => {
+  const updateDrill = (name: string, field: keyof DrillLogEntry, value: string | boolean) => {
     setLogData((prev) => ({
       ...prev,
       [logKey]: {
@@ -199,6 +207,10 @@ export default function SpeedExplosiveTrainingApp() {
     }));
   };
 
+  const toggleDrill = (name: string) => {
+    setExpandedDrills((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
   const metricSummary = useMemo(() => {
     return defaultMetrics.map((m) => {
       const current = parseFloat(metricData?.[weekNumber]?.[m.key] ?? "");
@@ -217,6 +229,20 @@ export default function SpeedExplosiveTrainingApp() {
     const complete = entries.filter((x) => x?.done).length;
     return Math.round((complete / dayPlan.drills.length) * 100);
   }, [todayLog, dayPlan.drills.length]);
+
+  const selectedMetric = defaultMetrics.find((m) => m.key === chartMetricKey) || defaultMetrics[0];
+
+  const chartData = useMemo(() => {
+    return Object.keys(metricData)
+      .map((wk) => {
+        const week = Number(wk);
+        const raw = metricData[week]?.[chartMetricKey];
+        const value = raw !== undefined && raw !== "" ? Number(raw) : null;
+        return { week: `W${week}`, weekNumber: week, value };
+      })
+      .filter((row) => row.value !== null && !Number.isNaN(row.value))
+      .sort((a, b) => a.weekNumber - b.weekNumber);
+  }, [metricData, chartMetricKey]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -282,6 +308,7 @@ export default function SpeedExplosiveTrainingApp() {
 
                       {dayPlan.drills.map((drill, idx) => {
                         const entry: DrillLogEntry = todayLog[drill.name] || {};
+                        const expanded = !!expandedDrills[drill.name];
                         return (
                           <Card key={drill.name} className="rounded-3xl border-slate-200">
                             <CardContent className="p-4">
@@ -302,9 +329,34 @@ export default function SpeedExplosiveTrainingApp() {
                                   <CheckCircle2 className="mr-1 h-4 w-4" /> {entry.done ? "Done" : "Mark"}
                                 </Button>
                               </div>
+
                               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
-                                {drill.cue}
+                                <div className="font-medium text-slate-900">Quick cue</div>
+                                <div className="mt-1">{drill.cue}</div>
                               </div>
+
+                              <div className="mt-3 flex gap-2">
+                                <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => toggleDrill(drill.name)}>
+                                  {expanded ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />} {expanded ? "Less" : "How to do it"}
+                                </Button>
+                                <Button asChild variant="outline" className="rounded-2xl" size="sm">
+                                  <a href={videoSearchUrl(drill.videoQuery)} target="_blank" rel="noreferrer">
+                                    <ExternalLink className="mr-1 h-4 w-4" /> Watch demo
+                                  </a>
+                                </Button>
+                              </div>
+
+                              {expanded && (
+                                <div className="mt-3 rounded-2xl border bg-white p-3 text-sm">
+                                  <div>
+                                    <span className="font-medium text-slate-900">How:</span> {drill.details}
+                                  </div>
+                                  <div className="mt-2">
+                                    <span className="font-medium text-slate-900">Why:</span> {drill.why}
+                                  </div>
+                                </div>
+                              )}
+
                               <div className="mt-3 grid grid-cols-2 gap-2">
                                 <Input
                                   inputMode="decimal"
@@ -359,7 +411,7 @@ export default function SpeedExplosiveTrainingApp() {
                 <CardContent className="space-y-3">
                   {defaultMetrics.map((metric) => (
                     <div key={metric.key} className="rounded-2xl border p-3">
-                      <p className="mb-2 text-sm font-medium text-slate-700">{metric.label}</p>
+                      <p className="mb-2 text-sm font-medium text-slate-700">{metric.label}{metric.unit ? ` (${metric.unit})` : ""}</p>
                       <Input
                         inputMode="decimal"
                         placeholder="Enter best weekly result"
@@ -374,6 +426,46 @@ export default function SpeedExplosiveTrainingApp() {
 
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" /> Improvement Graph</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+                    {defaultMetrics.map((metric) => (
+                      <Button
+                        key={metric.key}
+                        size="sm"
+                        variant={chartMetricKey === metric.key ? "default" : "outline"}
+                        className="rounded-2xl"
+                        onClick={() => setChartMetricKey(metric.key)}
+                      >
+                        {metric.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="mb-3 text-sm text-slate-500">
+                    Tracking: <span className="font-medium text-slate-900">{selectedMetric.label}</span>
+                    {selectedMetric.better === "lower" ? " · lower is better" : " · higher is better"}
+                  </div>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="week" />
+                        <YAxis />
+                        <Tooltip />
+                        <ReferenceLine y={chartData[0]?.value ?? undefined} strokeDasharray="4 4" />
+                        <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="mt-3 text-sm text-slate-500">
+                    Tip: enter one best result per week for the clearest improvement trend.
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-3xl shadow-sm">
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Timer className="h-5 w-5" /> Progress Snapshot</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -382,10 +474,10 @@ export default function SpeedExplosiveTrainingApp() {
                     if (m.trend !== null && !Number.isNaN(m.trend)) {
                       const good = m.trend > 0;
                       text = good
-                        ? `Improved by ${Math.abs(m.trend).toFixed(2)}`
+                        ? `Improved by ${Math.abs(m.trend).toFixed(2)}${m.unit ? ` ${m.unit}` : ""}`
                         : m.trend === 0
                         ? "No change"
-                        : `Down by ${Math.abs(m.trend).toFixed(2)}`;
+                        : `Down by ${Math.abs(m.trend).toFixed(2)}${m.unit ? ` ${m.unit}` : ""}`;
                     }
                     return (
                       <div key={m.key} className="flex items-center justify-between rounded-2xl border p-3">
@@ -429,6 +521,12 @@ export default function SpeedExplosiveTrainingApp() {
                                 <span className="text-sm text-slate-500">{d.target}</span>
                               </div>
                               <p className="mt-1 text-sm text-slate-600">{d.cue}</p>
+                              <div className="mt-2 text-sm text-slate-500">{d.why}</div>
+                              <div className="mt-2">
+                                <a href={videoSearchUrl(d.videoQuery)} target="_blank" rel="noreferrer" className="inline-flex items-center text-sm font-medium text-blue-600 hover:underline">
+                                  <ExternalLink className="mr-1 h-4 w-4" /> Demo search
+                                </a>
+                              </div>
                             </div>
                           ))}
                         </div>
