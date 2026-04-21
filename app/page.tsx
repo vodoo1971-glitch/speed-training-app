@@ -82,6 +82,8 @@ type TimerPreset = {
   rounds: number;
 };
 
+type HeaderMode = "expanded" | "collapsed";
+
 const days: DayKey[] = ["Day1", "Day2", "Day3", "Day4", "Day5", "Day6", "Day7"];
 
 const d = (
@@ -330,6 +332,7 @@ export default function SpeedExplosiveTrainingApp() {
   const [timerSecondsLeft, setTimerSecondsLeft] = useState<number>(timerPresets[0].work);
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
   const [loadedTimerDrill, setLoadedTimerDrill] = useState<string>("");
+  const [headerMode, setHeaderMode] = useState<HeaderMode>("expanded");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => saveState("weekNumber", weekNumber), [weekNumber]);
@@ -337,6 +340,19 @@ export default function SpeedExplosiveTrainingApp() {
   useEffect(() => saveState("metricDataV2", metricData), [metricData]);
   useEffect(() => saveState("athleteName", athlete), [athlete]);
   useEffect(() => saveState("selectedTrainingDay", selectedDay), [selectedDay]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.scrollY > 120) {
+        setHeaderMode((prev) => (prev === "expanded" ? "collapsed" : prev));
+      } else {
+        setHeaderMode("expanded");
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const isPhase2 = weekNumber >= 5;
   const activePlan = isPhase2 ? phase2Plan : phase1Plan;
@@ -586,83 +602,139 @@ export default function SpeedExplosiveTrainingApp() {
     setCurrentExerciseIndex((idx) => Math.min(dayPlan.drills.length - 1, idx + 1));
   };
 
+  const headerCollapsed = headerMode === "collapsed";
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-md pb-24">
-        <div className="sticky top-0 z-10 border-b bg-white/95 backdrop-blur">
-          <div className="p-4">
-            <div className="rounded-3xl bg-slate-900 p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Speed Training System</p>
-                  <h1 className="text-2xl font-bold">{athlete}</h1>
-                  <p className="mt-1 text-xs text-slate-300">{activePhaseLabel}</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Current training day: {selectedDay.replace("Day", "Day ")}
-                  </p>
-                </div>
-                <Badge className="rounded-full px-3 py-1 text-sm">Week {weekNumber}</Badge>
-              </div>
+        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+          <div className="p-2 sm:p-4">
+            <div
+              className={`rounded-[24px] bg-slate-900 text-white shadow-lg transition-all duration-300 ${
+                headerCollapsed ? "p-2" : "p-4"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setHeaderMode((prev) => (prev === "collapsed" ? "expanded" : "collapsed"))
+                }
+                className="block w-full text-left"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    {!headerCollapsed && (
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-300">
+                        Speed Training System
+                      </p>
+                    )}
 
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-2xl bg-white/10 p-3">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <Target className="h-4 w-4" /> Completion
+                    <div className={`flex items-center gap-2 ${headerCollapsed ? "mt-0" : "mt-2"}`}>
+                      <h1 className={`font-bold ${headerCollapsed ? "text-base" : "text-2xl"}`}>
+                        {athlete}
+                      </h1>
+                      <Badge
+                        variant="outline"
+                        className="rounded-full border-white/20 bg-white/10 text-white"
+                      >
+                        {selectedDay.replace("Day", "Day ")}
+                      </Badge>
+                    </div>
+
+                    {!headerCollapsed && (
+                      <>
+                        <p className="mt-1 text-xs text-slate-300">{activePhaseLabel}</p>
+                        <p className="mt-1 text-xs text-slate-400">
+                          Current training day: {selectedDay.replace("Day", "Day ")}
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <div className="mt-1 text-xl font-bold">{completionPct}%</div>
-                </div>
-                <div className="rounded-2xl bg-white/10 p-3">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <TrendingUp className="h-4 w-4" /> Top Trend
+
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge
+                      className={
+                        headerCollapsed
+                          ? "rounded-full px-2 py-0.5 text-[10px]"
+                          : "rounded-full px-3 py-1 text-sm"
+                      }
+                    >
+                      Week {weekNumber}
+                    </Badge>
+                    <div className="text-white/70">
+                      {headerCollapsed ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronUp className="h-4 w-4" />
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-1 text-sm font-semibold">
-                    {topImprovement ? topImprovement.label : "Waiting for data"}
-                  </div>
                 </div>
-              </div>
+              </button>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  className="rounded-2xl bg-white text-slate-900"
-                  onClick={goBackTrainingDay}
-                >
-                  <SkipBack className="mr-1 h-4 w-4" /> Back Day
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-2xl bg-white text-slate-900"
-                  onClick={advanceToNextTrainingDay}
-                >
-                  <SkipForward className="mr-1 h-4 w-4" /> Advance Day
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-2xl bg-white text-slate-900"
-                  onClick={restartCurrentDay}
-                >
-                  <Undo2 className="mr-1 h-4 w-4" /> Restart Day
-                </Button>
-                <Button
-                  variant="outline"
-                  className="rounded-2xl bg-white text-slate-900"
-                  onClick={goToDay1}
-                >
-                  Day 1
-                </Button>
-              </div>
+              {!headerCollapsed && (
+                <>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="rounded-2xl bg-white/10 p-3">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <Target className="h-4 w-4" /> Completion
+                      </div>
+                      <div className="mt-1 text-xl font-bold">{completionPct}%</div>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 p-3">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <TrendingUp className="h-4 w-4" /> Top Trend
+                      </div>
+                      <div className="mt-1 text-sm font-semibold">
+                        {topImprovement ? topImprovement.label : "Waiting for data"}
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="mt-2">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-2xl bg-white text-slate-900"
-                  onClick={restartCurrentWeek}
-                >
-                  <RotateCcw className="mr-1 h-4 w-4" /> Restart Week
-                </Button>
-              </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl bg-white text-slate-900"
+                      onClick={goBackTrainingDay}
+                    >
+                      <SkipBack className="mr-1 h-4 w-4" /> Back Day
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl bg-white text-slate-900"
+                      onClick={advanceToNextTrainingDay}
+                    >
+                      <SkipForward className="mr-1 h-4 w-4" /> Advance Day
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl bg-white text-slate-900"
+                      onClick={restartCurrentDay}
+                    >
+                      <Undo2 className="mr-1 h-4 w-4" /> Restart Day
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl bg-white text-slate-900"
+                      onClick={goToDay1}
+                    >
+                      Day 1
+                    </Button>
+                  </div>
 
-              <div className="mt-3 flex gap-2">
+                  <div className="mt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-2xl bg-white text-slate-900"
+                      onClick={restartCurrentWeek}
+                    >
+                      <RotateCcw className="mr-1 h-4 w-4" /> Restart Week
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              <div className={`flex gap-2 ${headerCollapsed ? "mt-2" : "mt-3"}`}>
                 <Input
                   value={athlete}
                   onChange={(e) => setAthlete(e.target.value)}
