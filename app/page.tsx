@@ -37,7 +37,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
-type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+type DayKey = "Day1" | "Day2" | "Day3" | "Day4" | "Day5" | "Day6" | "Day7";
 
 type Drill = {
   name: string;
@@ -79,7 +79,7 @@ type TimerPreset = {
   rounds: number;
 };
 
-const days: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const days: DayKey[] = ["Day1", "Day2", "Day3", "Day4", "Day5", "Day6", "Day7"];
 
 const d = (
   name: string,
@@ -91,7 +91,7 @@ const d = (
 ): Drill => ({ name, target, cue, details, why, videoQuery });
 
 const phase1Plan: Record<DayKey, DayPlan> = {
-  Mon: {
+  Day1: {
     title: "Speed + Lower Strength",
     focus: "Acceleration and lower-body power",
     drills: [
@@ -105,7 +105,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Broad Jump", "3 x 5", "Explode and stick the landing.", "Use arm swing and land balanced with soft knees.", "Improves horizontal power.", "broad jump proper form athlete"),
     ],
   },
-  Tue: {
+  Day2: {
     title: "Agility + Conditioning + Skills",
     focus: "Footwork, change of direction, and sport skill",
     drills: [
@@ -117,7 +117,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Lacrosse Wall Ball", "10 min", "Both hands, quick release.", "Throw and catch cleanly with both hands.", "Builds stick skills and hand speed.", "lacrosse wall ball drills youth"),
     ],
   },
-  Wed: {
+  Day3: {
     title: "Upper Body + Core",
     focus: "Upper strength and trunk control",
     drills: [
@@ -129,7 +129,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Dead Bugs", "3 x 10/side", "Move slowly.", "Extend opposite limbs while keeping low back down.", "Builds core control.", "dead bug exercise proper form"),
     ],
   },
-  Thu: {
+  Day4: {
     title: "Speed Endurance + Skills",
     focus: "Repeated sprint ability under control",
     drills: [
@@ -140,7 +140,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Lacrosse Dodge to Shot", "8 reps", "Change speed into dodge.", "Attack, dodge, then shoot balanced.", "Builds game-specific finishing under fatigue.", "lacrosse dodge to shot drill"),
     ],
   },
-  Fri: {
+  Day5: {
     title: "Explosive Power + Agility",
     focus: "Power, reaction, and lateral explosiveness",
     drills: [
@@ -152,7 +152,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Reaction Sprint", "5 reps", "Move on cue.", "Explode immediately on clap, point, or voice.", "Turns speed into usable game reaction.", "reaction sprint drill athlete"),
     ],
   },
-  Sat: {
+  Day6: {
     title: "Conditioning + Small-Sided Play",
     focus: "Game conditioning and decision-making",
     drills: [
@@ -161,7 +161,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
       d("Mobility Recovery", "10 min", "Hips, hamstrings, groin, ankles.", "Move through mobility drills with controlled breathing.", "Improves recovery and movement quality.", "lower body mobility routine athletes"),
     ],
   },
-  Sun: {
+  Day7: {
     title: "Recovery",
     focus: "Rest and rebuild",
     drills: [
@@ -171,7 +171,7 @@ const phase1Plan: Record<DayKey, DayPlan> = {
 };
 
 const phase2Plan: Record<DayKey, DayPlan> = {
-  Mon: {
+  Day1: {
     title: "Max Speed + Elastic Power",
     focus: "Top-end speed and reactive explosiveness",
     drills: [
@@ -184,7 +184,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("RDL / Single-Leg RDL", "3 x 8", "Hinge cleanly.", "Keep the back flat and load the hips and hamstrings.", "Supports hamstring strength for sprinting.", "single leg rdl kettlebell proper form"),
     ],
   },
-  Tue: {
+  Day2: {
     title: "Agility + Reaction + Skills",
     focus: "Decision speed and sharper movement",
     drills: [
@@ -196,7 +196,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("Lacrosse Wall Ball", "12 min", "Quick release, both hands.", "Increase speed and accuracy.", "Builds stick skill under more demand.", "lacrosse wall ball drills youth"),
     ],
   },
-  Wed: {
+  Day3: {
     title: "Upper Body + Core (Explosive)",
     focus: "Fast upper-body force and trunk control",
     drills: [
@@ -208,7 +208,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("Dead Bugs", "3 x 12/side", "Move slow, control trunk.", "Keep ribs down and low back flat.", "Builds core control under limb movement.", "dead bug exercise proper form"),
     ],
   },
-  Thu: {
+  Day4: {
     title: "Game Speed + Speed Endurance",
     focus: "Hold speed deeper into sessions",
     drills: [
@@ -220,7 +220,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("Lacrosse Dodge to Shot", "10 reps", "Explode out of the dodge.", "Maintain quality after the sprint.", "Improves lacrosse finishing under fatigue.", "lacrosse dodge to shot drill"),
     ],
   },
-  Fri: {
+  Day5: {
     title: "Reactive Power + Lateral Explosion",
     focus: "Fast ground contact and reactive control",
     drills: [
@@ -232,7 +232,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("Reaction Sprint", "6 reps", "Move instantly on cue.", "Explode off the cue and own the first steps.", "Transfers speed into game reactions.", "reaction sprint drill athlete"),
     ],
   },
-  Sat: {
+  Day6: {
     title: "Conditioning + Small-Sided Play",
     focus: "Game conditioning with more demand",
     drills: [
@@ -241,7 +241,7 @@ const phase2Plan: Record<DayKey, DayPlan> = {
       d("Mobility Recovery", "10-15 min", "Recover after the work.", "Flow through hips, ankles, and groin.", "Helps restore movement quality.", "lower body mobility routine athletes"),
     ],
   },
-  Sun: {
+  Day7: {
     title: "Recovery",
     focus: "Rest and rebuild",
     drills: [
@@ -279,9 +279,8 @@ function saveState<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function todayToDayKey(): DayKey {
-  const map: DayKey[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  return map[new Date().getDay()];
+function firstDayKey(): DayKey {
+  return "Day1";
 }
 
 function videoSearchUrl(query: string): string {
@@ -310,11 +309,15 @@ function suggestedTimerIndex(drillName: string): number | null {
 }
 
 export default function SpeedExplosiveTrainingApp() {
-  const [selectedDay, setSelectedDay] = useState<DayKey>(todayToDayKey());
+  const [selectedDay, setSelectedDay] = useState<DayKey>(() =>
+    loadState<DayKey>("selectedTrainingDay", firstDayKey())
+  );
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
   const [weekNumber, setWeekNumber] = useState<number>(() => loadState<number>("weekNumber", 1));
   const [logData, setLogData] = useState<LogData>(() => loadState<LogData>("trainingLogV2", {}));
-  const [metricData, setMetricData] = useState<MetricData>(() => loadState<MetricData>("metricDataV2", {}));
+  const [metricData, setMetricData] = useState<MetricData>(() =>
+    loadState<MetricData>("metricDataV2", {})
+  );
   const [athlete, setAthlete] = useState<string>(() => loadState<string>("athleteName", "Athlete"));
   const [expandedDrills, setExpandedDrills] = useState<Record<string, boolean>>({});
   const [chartMetricKey, setChartMetricKey] = useState<string>("10yd");
@@ -330,6 +333,7 @@ export default function SpeedExplosiveTrainingApp() {
   useEffect(() => saveState("trainingLogV2", logData), [logData]);
   useEffect(() => saveState("metricDataV2", metricData), [metricData]);
   useEffect(() => saveState("athleteName", athlete), [athlete]);
+  useEffect(() => saveState("selectedTrainingDay", selectedDay), [selectedDay]);
 
   const isPhase2 = weekNumber >= 5;
   const activePlan = isPhase2 ? phase2Plan : phase1Plan;
@@ -508,8 +512,22 @@ export default function SpeedExplosiveTrainingApp() {
     }
   };
 
+  const advanceToNextTrainingDay = () => {
+    const currentIndex = days.indexOf(selectedDay);
+    const nextIndex = currentIndex === days.length - 1 ? 0 : currentIndex + 1;
+    if (currentIndex === days.length - 1) {
+      setWeekNumber((w) => w + 1);
+    }
+    setSelectedDay(days[nextIndex]);
+    setCurrentExerciseIndex(0);
+  };
+
   const goNextExercise = () => {
     if (currentDrill) updateDrill(currentDrill.name, "done", true);
+    if (currentExerciseIndex === dayPlan.drills.length - 1) {
+      advanceToNextTrainingDay();
+      return;
+    }
     setCurrentExerciseIndex((idx) => Math.min(dayPlan.drills.length - 1, idx + 1));
   };
 
@@ -524,28 +542,52 @@ export default function SpeedExplosiveTrainingApp() {
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Speed Training System</p>
                   <h1 className="text-2xl font-bold">{athlete}</h1>
                   <p className="mt-1 text-xs text-slate-300">{activePhaseLabel}</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Current training day: {selectedDay.replace("Day", "Day ")}
+                  </p>
                 </div>
                 <Badge className="rounded-full px-3 py-1 text-sm">Week {weekNumber}</Badge>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div className="rounded-2xl bg-white/10 p-3">
-                  <div className="flex items-center gap-2 text-slate-300"><Target className="h-4 w-4" /> Completion</div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Target className="h-4 w-4" /> Completion
+                  </div>
                   <div className="mt-1 text-xl font-bold">{completionPct}%</div>
                 </div>
                 <div className="rounded-2xl bg-white/10 p-3">
-                  <div className="flex items-center gap-2 text-slate-300"><TrendingUp className="h-4 w-4" /> Top Trend</div>
-                  <div className="mt-1 text-sm font-semibold">{topImprovement ? topImprovement.label : "Waiting for data"}</div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <TrendingUp className="h-4 w-4" /> Top Trend
+                  </div>
+                  <div className="mt-1 text-sm font-semibold">
+                    {topImprovement ? topImprovement.label : "Waiting for data"}
+                  </div>
                 </div>
               </div>
               <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  className="rounded-2xl bg-white text-slate-900"
+                  onClick={advanceToNextTrainingDay}
+                >
+                  Advance Day
+                </Button>
                 <Input
                   value={athlete}
                   onChange={(e) => setAthlete(e.target.value)}
                   placeholder="Athlete name"
                   className="rounded-2xl bg-white text-slate-900"
                 />
-                <Button variant="outline" className="rounded-2xl" onClick={() => setWeekNumber((w) => Math.max(1, w - 1))}>-</Button>
-                <Button className="rounded-2xl" onClick={() => setWeekNumber((w) => w + 1)}>+</Button>
+                <Button
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() => setWeekNumber((w) => Math.max(1, w - 1))}
+                >
+                  -
+                </Button>
+                <Button className="rounded-2xl" onClick={() => setWeekNumber((w) => w + 1)}>
+                  +
+                </Button>
               </div>
             </div>
           </div>
@@ -567,7 +609,9 @@ export default function SpeedExplosiveTrainingApp() {
                       <CardTitle className="text-xl">{dayPlan.title}</CardTitle>
                       <p className="mt-1 text-sm text-slate-600">{dayPlan.focus}</p>
                     </div>
-                    <div className="rounded-2xl bg-slate-100 p-3"><Zap className="h-5 w-5" /></div>
+                    <div className="rounded-2xl bg-slate-100 p-3">
+                      <Zap className="h-5 w-5" />
+                    </div>
                   </div>
                   <div className="mt-3">
                     <div className="mb-2 flex items-center justify-between text-sm">
@@ -599,7 +643,8 @@ export default function SpeedExplosiveTrainingApp() {
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button className="rounded-2xl" onClick={() => setTimerRunning((prev) => !prev)}>
-                        {timerRunning ? <Pause className="mr-1 h-4 w-4" /> : <Play className="mr-1 h-4 w-4" />} {timerRunning ? "Pause" : "Start"}
+                        {timerRunning ? <Pause className="mr-1 h-4 w-4" /> : <Play className="mr-1 h-4 w-4" />}
+                        {timerRunning ? "Pause" : "Start"}
                       </Button>
                       <Button variant="outline" className="rounded-2xl" onClick={resetTimer}>
                         <RotateCcw className="mr-1 h-4 w-4" /> Reset
@@ -623,12 +668,27 @@ export default function SpeedExplosiveTrainingApp() {
                             }`}
                           >
                             <div>
-                              <div className="text-sm font-medium text-slate-900">{idx + 1}. {drill.name}</div>
+                              <div className="text-sm font-medium text-slate-900">
+                                {idx + 1}. {drill.name}
+                              </div>
                               <div className="text-xs text-slate-500">{drill.target}</div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {done ? <Badge className="rounded-full">Done</Badge> : <Badge variant="outline" className="rounded-full">Pending</Badge>}
-                              <Button variant="outline" size="sm" className="rounded-2xl" onClick={() => setCurrentExerciseIndex(idx)}>Open</Button>
+                              {done ? (
+                                <Badge className="rounded-full">Done</Badge>
+                              ) : (
+                                <Badge variant="outline" className="rounded-full">
+                                  Pending
+                                </Badge>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-2xl"
+                                onClick={() => setCurrentExerciseIndex(idx)}
+                              >
+                                Open
+                              </Button>
                             </div>
                           </div>
                         );
@@ -664,12 +724,26 @@ export default function SpeedExplosiveTrainingApp() {
 
                         <div className="mt-3 flex flex-wrap gap-2">
                           {suggestedTimerIndex(currentDrill.name) !== null ? (
-                            <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => loadDrillTimer(currentDrill.name)}>
+                            <Button
+                              variant="outline"
+                              className="rounded-2xl"
+                              size="sm"
+                              onClick={() => loadDrillTimer(currentDrill.name)}
+                            >
                               <Timer className="mr-1 h-4 w-4" /> Load timer
                             </Button>
                           ) : null}
-                          <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => toggleDrill(currentDrill.name)}>
-                            {!!expandedDrills[currentDrill.name] ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />}
+                          <Button
+                            variant="outline"
+                            className="rounded-2xl"
+                            size="sm"
+                            onClick={() => toggleDrill(currentDrill.name)}
+                          >
+                            {!!expandedDrills[currentDrill.name] ? (
+                              <ChevronUp className="mr-1 h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="mr-1 h-4 w-4" />
+                            )}
                             {!!expandedDrills[currentDrill.name] ? "Less" : "How to do it"}
                           </Button>
                           <Button asChild variant="outline" className="rounded-2xl" size="sm">
@@ -681,8 +755,12 @@ export default function SpeedExplosiveTrainingApp() {
 
                         {!!expandedDrills[currentDrill.name] && (
                           <div className="mt-3 rounded-2xl border bg-white p-3 text-sm">
-                            <div><span className="font-medium text-slate-900">How:</span> {currentDrill.details}</div>
-                            <div className="mt-2"><span className="font-medium text-slate-900">Why:</span> {currentDrill.why}</div>
+                            <div>
+                              <span className="font-medium text-slate-900">How:</span> {currentDrill.details}
+                            </div>
+                            <div className="mt-2">
+                              <span className="font-medium text-slate-900">Why:</span> {currentDrill.why}
+                            </div>
                           </div>
                         )}
 
@@ -711,13 +789,11 @@ export default function SpeedExplosiveTrainingApp() {
                           >
                             Previous
                           </Button>
-                          <div className="text-xs text-slate-500">Exercise {currentExerciseIndex + 1} of {dayPlan.drills.length}</div>
-                          <Button
-                            className="rounded-2xl"
-                            onClick={goNextExercise}
-                            disabled={currentExerciseIndex === dayPlan.drills.length - 1}
-                          >
-                            Next
+                          <div className="text-xs text-slate-500">
+                            Exercise {currentExerciseIndex + 1} of {dayPlan.drills.length}
+                          </div>
+                          <Button className="rounded-2xl" onClick={goNextExercise}>
+                            {currentExerciseIndex === dayPlan.drills.length - 1 ? "Finish Day" : "Next"}
                           </Button>
                         </div>
                       </CardContent>
@@ -730,17 +806,23 @@ export default function SpeedExplosiveTrainingApp() {
             <TabsContent value="metrics" className="mt-4 space-y-4">
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Coach Dashboard</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" /> Coach Dashboard
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-2xl border bg-slate-50 p-4">
                       <div className="text-slate-500">Top Trend</div>
-                      <div className="mt-1 font-semibold">{topImprovement ? topImprovement.label : "Waiting for data"}</div>
+                      <div className="mt-1 font-semibold">
+                        {topImprovement ? topImprovement.label : "Waiting for data"}
+                      </div>
                     </div>
                     <div className="rounded-2xl border bg-slate-50 p-4">
                       <div className="text-slate-500">PR Status</div>
-                      <div className="mt-1 font-semibold">{isCurrentWeekPR ? "New PR this week" : "No PR yet this week"}</div>
+                      <div className="mt-1 font-semibold">
+                        {isCurrentWeekPR ? "New PR this week" : "No PR yet this week"}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -748,7 +830,9 @@ export default function SpeedExplosiveTrainingApp() {
 
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Weekly Performance</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" /> Weekly Performance
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {metrics.map((metric) => {
@@ -758,7 +842,10 @@ export default function SpeedExplosiveTrainingApp() {
                     return (
                       <div key={metric.key} className="rounded-2xl border p-3">
                         <div className="mb-2 flex items-center justify-between gap-2">
-                          <p className="text-sm font-medium text-slate-700">{metric.label}{metric.unit ? ` (${metric.unit})` : ""}</p>
+                          <p className="text-sm font-medium text-slate-700">
+                            {metric.label}
+                            {metric.unit ? ` (${metric.unit})` : ""}
+                          </p>
                           {pr !== null ? (
                             <Badge variant="outline" className="rounded-full">
                               <Medal className="mr-1 h-3.5 w-3.5" /> PR {pr}
@@ -781,7 +868,9 @@ export default function SpeedExplosiveTrainingApp() {
 
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5" /> Improvement Graph</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" /> Improvement Graph
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -825,7 +914,9 @@ export default function SpeedExplosiveTrainingApp() {
 
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" /> Progress Snapshot</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" /> Progress Snapshot
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {metricSummary.map((m) => {
@@ -834,9 +925,10 @@ export default function SpeedExplosiveTrainingApp() {
                       const direction = m.trend > 0 ? "Improved" : m.trend === 0 ? "No change" : "Down";
                       const absTrend = Math.abs(m.trend).toFixed(2);
                       const percentText = m.percent !== null ? ` · ${Math.abs(m.percent).toFixed(1)}%` : "";
-                      text = direction === "No change"
-                        ? "No change"
-                        : `${direction} by ${absTrend}${m.unit ? ` ${m.unit}` : ""}${percentText}`;
+                      text =
+                        direction === "No change"
+                          ? "No change"
+                          : `${direction} by ${absTrend}${m.unit ? ` ${m.unit}` : ""}${percentText}`;
                     }
                     return (
                       <div key={m.key} className="flex items-center justify-between rounded-2xl border p-3">
@@ -845,8 +937,14 @@ export default function SpeedExplosiveTrainingApp() {
                           <p className="text-sm text-slate-500">{text}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {personalRecords[m.key] !== null ? <Badge variant="secondary" className="rounded-full">PR {personalRecords[m.key]}</Badge> : null}
-                          <Badge variant="outline" className="rounded-full">{metricData?.[weekNumber]?.[m.key] || "--"}</Badge>
+                          {personalRecords[m.key] !== null ? (
+                            <Badge variant="secondary" className="rounded-full">
+                              PR {personalRecords[m.key]}
+                            </Badge>
+                          ) : null}
+                          <Badge variant="outline" className="rounded-full">
+                            {metricData?.[weekNumber]?.[m.key] || "--"}
+                          </Badge>
                         </div>
                       </div>
                     );
@@ -858,7 +956,9 @@ export default function SpeedExplosiveTrainingApp() {
             <TabsContent value="plan" className="mt-4 space-y-4">
               <Card className="rounded-3xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Footprints className="h-5 w-5" /> Weekly Plan</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Footprints className="h-5 w-5" /> Weekly Plan
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {days.map((day) => (
@@ -866,13 +966,19 @@ export default function SpeedExplosiveTrainingApp() {
                       <CardContent className="p-4">
                         <div className="mb-2 flex items-center justify-between">
                           <div>
-                            <h3 className="font-semibold">{day} · {activePlan[day].title}</h3>
+                            <h3 className="font-semibold">
+                              {day.replace("Day", "Day ")} · {activePlan[day].title}
+                            </h3>
                             <p className="text-sm text-slate-500">{activePlan[day].focus}</p>
                           </div>
-                          {day === "Mon" || day === "Thu" || day === "Fri" ? (
-                            <Badge className="rounded-full"><Zap className="mr-1 h-3.5 w-3.5" /> Speed</Badge>
-                          ) : day === "Wed" ? (
-                            <Badge variant="secondary" className="rounded-full"><Dumbbell className="mr-1 h-3.5 w-3.5" /> Strength</Badge>
+                          {day === "Day1" || day === "Day4" || day === "Day5" ? (
+                            <Badge className="rounded-full">
+                              <Zap className="mr-1 h-3.5 w-3.5" /> Speed
+                            </Badge>
+                          ) : day === "Day3" ? (
+                            <Badge variant="secondary" className="rounded-full">
+                              <Dumbbell className="mr-1 h-3.5 w-3.5" /> Strength
+                            </Badge>
                           ) : null}
                         </div>
                         <div className="space-y-2">
