@@ -211,7 +211,17 @@ function formatSeconds(totalSeconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
+function suggestedTimerIndex(drillName: string): number | null {
+  const name = drillName.toLowerCase();
+  if (name.includes("interval") || name.includes("30/30")) return 2;
+  if (name.includes("sprint / walk")) return 1;
+  if (name.includes("sprint") || name.includes("shuttle") || name.includes("reaction")) return 0;
+  return null;
+}
+}
+
 export default function SpeedExplosiveTrainingApp() {
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
   const [selectedDay, setSelectedDay] = useState<DayKey>(todayToDayKey());
   const [weekNumber, setWeekNumber] = useState<number>(() => loadState<number>("weekNumber", 1));
   const [logData, setLogData] = useState<LogData>(() => loadState<LogData>("trainingLogV2", {}));
@@ -224,6 +234,7 @@ export default function SpeedExplosiveTrainingApp() {
   const [timerRoundsLeft, setTimerRoundsLeft] = useState<number>(timerPresets[0].rounds);
   const [timerSecondsLeft, setTimerSecondsLeft] = useState<number>(timerPresets[0].work);
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
+  const [loadedTimerDrill, setLoadedTimerDrill] = useState<string>("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => saveState("weekNumber", weekNumber), [weekNumber]);
@@ -289,8 +300,14 @@ export default function SpeedExplosiveTrainingApp() {
   }, [timerRunning, timerPhase, timerRoundsLeft, timerSecondsLeft, currentPreset.work, currentPreset.rest]);
 
   const dayPlan = plan[selectedDay];
+  const currentDrill = dayPlan.drills[currentExerciseIndex];
   const logKey = `week${weekNumber}-${selectedDay}`;
   const todayLog: DayLog = logData[logKey] || {};
+  const currentDrillEntry: DrillLogEntry = currentDrill ? todayLog[currentDrill.name] || {} : {};
+
+  useEffect(() => {
+    setCurrentExerciseIndex(0);
+  }, [selectedDay, weekNumber]);
 
   const updateDrill = (name: string, field: keyof DrillLogEntry, value: string | boolean) => {
     setLogData((prev) => ({
@@ -379,8 +396,17 @@ export default function SpeedExplosiveTrainingApp() {
     .filter((m) => m.percent !== null && !Number.isNaN(m.percent ?? NaN))
     .sort((a, b) => Math.abs((b.percent ?? 0)) - Math.abs((a.percent ?? 0)))[0];
 
+  const loadDrillTimer = (drillName: string) => {
+    const idx = suggestedTimerIndex(drillName);
+    if (idx === null) return;
+    setTimerPresetIndex(idx);
+    setLoadedTimerDrill(drillName);
+    setTimerRunning(false);
+  };
+
   const resetTimer = () => {
     setTimerRunning(false);
+    setLoadedTimerDrill("");
     setTimerPhase("work");
     setTimerRoundsLeft(currentPreset.rounds);
     setTimerSecondsLeft(currentPreset.work);
@@ -452,33 +478,20 @@ export default function SpeedExplosiveTrainingApp() {
                   <div className="mb-4 rounded-3xl border bg-slate-50 p-4">
                     <div className="mb-3 flex items-center gap-2">
                       <Timer className="h-5 w-5" />
-                      <div className="font-semibold">Interval Timer</div>
-                    </div>
-                    <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-                      {timerPresets.map((preset, idx) => (
-                        <Button
-                          key={preset.label}
-                          size="sm"
-                          variant={timerPresetIndex === idx ? "default" : "outline"}
-                          className="rounded-2xl"
-                          onClick={() => setTimerPresetIndex(idx)}
-                        >
-                          {preset.label}
-                        </Button>
-                      ))}
+                      <div className="font-semibold">Loaded Timer</div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div className="rounded-2xl bg-white p-3">
-                        <div className="text-xs text-slate-500">Phase</div>
-                        <div className="mt-1 font-semibold capitalize">{timerPhase}</div>
+                        <div className="text-xs text-slate-500">Preset</div>
+                        <div className="mt-1 text-sm font-semibold">{currentPreset.label}</div>
                       </div>
                       <div className="rounded-2xl bg-white p-3">
                         <div className="text-xs text-slate-500">Time</div>
                         <div className="mt-1 text-xl font-bold">{formatSeconds(timerSecondsLeft)}</div>
                       </div>
                       <div className="rounded-2xl bg-white p-3">
-                        <div className="text-xs text-slate-500">Rounds Left</div>
-                        <div className="mt-1 font-semibold">{timerRoundsLeft}</div>
+                        <div className="text-xs text-slate-500">For</div>
+                        <div className="mt-1 text-sm font-semibold">{loadedTimerDrill || "Select a drill"}</div>
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
@@ -494,114 +507,100 @@ export default function SpeedExplosiveTrainingApp() {
                     </div>
                   </div>
 
-                  <ScrollArea className="h-[52vh] pr-3">
-                    <div className="space-y-4">
-                      <div className="flex gap-2 overflow-x-auto pb-2">
-                        {days.map((d) => (
-                          <Button
-                            key={d}
-                            variant={selectedDay === d ? "default" : "outline"}
-                            className="rounded-2xl"
-                            onClick={() => setSelectedDay(d)}
-                          >
-                            {d}
-                          </Button>
-                        ))}
-                      </div>
-
+                  <div className="mb-4 rounded-3xl border bg-white p-4">
+                    <div className="mb-2 text-sm font-semibold text-slate-900">Today’s Exercise List</div>
+                    <div className="space-y-2">
                       {dayPlan.drills.map((drill, idx) => {
-                        const entry: DrillLogEntry = todayLog[drill.name] || {};
-                        const expanded = !!expandedDrills[drill.name];
+                        const done = !!todayLog[drill.name]?.done;
                         return (
-                          <Card key={drill.name} className="rounded-3xl border-slate-200">
-                            <CardContent className="p-4">
-                              <div className="mb-3 flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-slate-500">#{idx + 1}</span>
-                                    <h3 className="font-semibold">{drill.name}</h3>
-                                  </div>
-                                  <p className="mt-1 text-sm text-slate-500">Target: {drill.target}</p>
-                                </div>
-                                <Button
-                                  variant={entry.done ? "default" : "outline"}
-                                  size="sm"
-                                  className="rounded-full"
-                                  onClick={() => updateDrill(drill.name, "done", !entry.done)}
-                                >
-                                  <CheckCircle2 className="mr-1 h-4 w-4" /> {entry.done ? "Done" : "Mark"}
-                                </Button>
-                              </div>
-
-                              <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
-                                <div className="font-medium text-slate-900">Quick cue</div>
-                                <div className="mt-1">{drill.cue}</div>
-                              </div>
-
-                              <div className="mt-3 flex gap-2">
-                                <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => toggleDrill(drill.name)}>
-                                  {expanded ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />} {expanded ? "Less" : "How to do it"}
-                                </Button>
-                                <Button asChild variant="outline" className="rounded-2xl" size="sm">
-                                  <a href={videoSearchUrl(drill.videoQuery)} target="_blank" rel="noreferrer">
-                                    <ExternalLink className="mr-1 h-4 w-4" /> Watch demo
-                                  </a>
-                                </Button>
-                              </div>
-
-                              {expanded && (
-                                <div className="mt-3 rounded-2xl border bg-white p-3 text-sm">
-                                  <div>
-                                    <span className="font-medium text-slate-900">How:</span> {drill.details}
-                                  </div>
-                                  <div className="mt-2">
-                                    <span className="font-medium text-slate-900">Why:</span> {drill.why}
-                                  </div>
-                                </div>
-                              )}
-
-                              <div className="mt-3 grid grid-cols-2 gap-2">
-                                <Input
-                                  inputMode="decimal"
-                                  placeholder="Set / Rep 1"
-                                  value={entry.set1 || ""}
-                                  onChange={(e) => updateDrill(drill.name, "set1", e.target.value)}
-                                  className="rounded-2xl"
-                                />
-                                <Input
-                                  inputMode="decimal"
-                                  placeholder="Set / Rep 2"
-                                  value={entry.set2 || ""}
-                                  onChange={(e) => updateDrill(drill.name, "set2", e.target.value)}
-                                  className="rounded-2xl"
-                                />
-                                <Input
-                                  inputMode="decimal"
-                                  placeholder="Set / Rep 3"
-                                  value={entry.set3 || ""}
-                                  onChange={(e) => updateDrill(drill.name, "set3", e.target.value)}
-                                  className="rounded-2xl"
-                                />
-                                <Input
-                                  inputMode="decimal"
-                                  placeholder="Best result"
-                                  value={entry.best || ""}
-                                  onChange={(e) => updateDrill(drill.name, "best", e.target.value)}
-                                  className="rounded-2xl"
-                                />
-                              </div>
-                              <Textarea
-                                placeholder="Notes"
-                                value={entry.notes || ""}
-                                onChange={(e) => updateDrill(drill.name, "notes", e.target.value)}
-                                className="mt-2 min-h-[70px] rounded-2xl"
-                              />
-                            </CardContent>
-                          </Card>
+                          <div key={drill.name} className={`flex items-center justify-between rounded-2xl border px-3 py-2 ${idx === currentExerciseIndex ? "border-slate-900 bg-slate-50" : "border-slate-200 bg-white"}`}>
+                            <div>
+                              <div className="text-sm font-medium text-slate-900">{idx + 1}. {drill.name}</div>
+                              <div className="text-xs text-slate-500">{drill.target}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {done ? <Badge className="rounded-full">Done</Badge> : <Badge variant="outline" className="rounded-full">Pending</Badge>}
+                              <Button variant="outline" size="sm" className="rounded-2xl" onClick={() => setCurrentExerciseIndex(idx)}>Open</Button>
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
-                  </ScrollArea>
+                  </div>
+
+                  {currentDrill ? (
+                    <Card className="rounded-3xl border-slate-200">
+                      <CardContent className="p-4">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-slate-500">#{currentExerciseIndex + 1}</span>
+                              <h3 className="font-semibold">{currentDrill.name}</h3>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-500">Target: {currentDrill.target}</p>
+                          </div>
+                          <Button
+                            variant={currentDrillEntry.done ? "default" : "outline"}
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => updateDrill(currentDrill.name, "done", !currentDrillEntry.done)}
+                          >
+                            <CheckCircle2 className="mr-1 h-4 w-4" /> {currentDrillEntry.done ? "Done" : "Mark"}
+                          </Button>
+                        </div>
+
+                        <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                          <div className="font-medium text-slate-900">Quick cue</div>
+                          <div className="mt-1">{currentDrill.cue}</div>
+                        </div>
+
+                        <div className="mt-3 flex gap-2 flex-wrap">
+                          {suggestedTimerIndex(currentDrill.name) !== null ? (
+                            <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => loadDrillTimer(currentDrill.name)}>
+                              <Timer className="mr-1 h-4 w-4" /> Load timer
+                            </Button>
+                          ) : null}
+                          <Button variant="outline" className="rounded-2xl" size="sm" onClick={() => toggleDrill(currentDrill.name)}>
+                            {!!expandedDrills[currentDrill.name] ? <ChevronUp className="mr-1 h-4 w-4" /> : <ChevronDown className="mr-1 h-4 w-4" />} {!!expandedDrills[currentDrill.name] ? "Less" : "How to do it"}
+                          </Button>
+                          <Button asChild variant="outline" className="rounded-2xl" size="sm">
+                            <a href={videoSearchUrl(currentDrill.videoQuery)} target="_blank" rel="noreferrer">
+                              <ExternalLink className="mr-1 h-4 w-4" /> Watch demo
+                            </a>
+                          </Button>
+                        </div>
+
+                        {!!expandedDrills[currentDrill.name] && (
+                          <div className="mt-3 rounded-2xl border bg-white p-3 text-sm">
+                            <div>
+                              <span className="font-medium text-slate-900">How:</span> {currentDrill.details}
+                            </div>
+                            <div className="mt-2">
+                              <span className="font-medium text-slate-900">Why:</span> {currentDrill.why}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <Input inputMode="decimal" placeholder="Set / Rep 1" value={currentDrillEntry.set1 || ""} onChange={(e) => updateDrill(currentDrill.name, "set1", e.target.value)} className="rounded-2xl" />
+                          <Input inputMode="decimal" placeholder="Set / Rep 2" value={currentDrillEntry.set2 || ""} onChange={(e) => updateDrill(currentDrill.name, "set2", e.target.value)} className="rounded-2xl" />
+                          <Input inputMode="decimal" placeholder="Set / Rep 3" value={currentDrillEntry.set3 || ""} onChange={(e) => updateDrill(currentDrill.name, "set3", e.target.value)} className="rounded-2xl" />
+                          <Input inputMode="decimal" placeholder="Best result" value={currentDrillEntry.best || ""} onChange={(e) => updateDrill(currentDrill.name, "best", e.target.value)} className="rounded-2xl" />
+                        </div>
+                        <Textarea placeholder="Notes" value={currentDrillEntry.notes || ""} onChange={(e) => updateDrill(currentDrill.name, "notes", e.target.value)} className="mt-2 min-h-[70px] rounded-2xl" />
+
+                        <div className="mt-4 flex items-center justify-between gap-2">
+                          <Button variant="outline" className="rounded-2xl" onClick={() => setCurrentExerciseIndex((idx) => Math.max(0, idx - 1))} disabled={currentExerciseIndex === 0}>
+                            Previous
+                          </Button>
+                          <div className="text-xs text-slate-500">Exercise {currentExerciseIndex + 1} of {dayPlan.drills.length}</div>
+                          <Button className="rounded-2xl" onClick={() => setCurrentExerciseIndex((idx) => Math.min(dayPlan.drills.length - 1, idx + 1))} disabled={currentExerciseIndex === dayPlan.drills.length - 1}>
+                            Next
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : null}
                 </CardContent>
               </Card>
             </TabsContent>
