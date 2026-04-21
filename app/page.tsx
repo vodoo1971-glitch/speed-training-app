@@ -218,7 +218,6 @@ function suggestedTimerIndex(drillName: string): number | null {
   if (name.includes("sprint") || name.includes("shuttle") || name.includes("reaction")) return 0;
   return null;
 }
-}
 
 export default function SpeedExplosiveTrainingApp() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
