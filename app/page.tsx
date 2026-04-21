@@ -25,6 +25,9 @@ import {
   RotateCcw,
   TrendingUp,
   Target,
+  SkipBack,
+  SkipForward,
+  Undo2,
 } from "lucide-react";
 import {
   LineChart,
@@ -522,6 +525,58 @@ export default function SpeedExplosiveTrainingApp() {
     setCurrentExerciseIndex(0);
   };
 
+  const goBackTrainingDay = () => {
+    const currentIndex = days.indexOf(selectedDay);
+    const previousIndex = currentIndex === 0 ? days.length - 1 : currentIndex - 1;
+    if (currentIndex === 0) {
+      setWeekNumber((w) => Math.max(1, w - 1));
+    }
+    setSelectedDay(days[previousIndex]);
+    setCurrentExerciseIndex(0);
+  };
+
+  const restartCurrentDay = () => {
+    setLogData((prev) => {
+      const next = { ...prev };
+      delete next[logKey];
+      return next;
+    });
+    setCurrentExerciseIndex(0);
+    setExpandedDrills({});
+    setLoadedTimerDrill("");
+    setTimerRunning(false);
+  };
+
+  const restartCurrentWeek = () => {
+    setLogData((prev) => {
+      const next: LogData = {};
+      for (const [key, value] of Object.entries(prev)) {
+        if (!key.startsWith(`week${weekNumber}-`)) {
+          next[key] = value;
+        }
+      }
+      return next;
+    });
+    setMetricData((prev) => {
+      const next = { ...prev };
+      delete next[weekNumber];
+      return next;
+    });
+    setSelectedDay("Day1");
+    setCurrentExerciseIndex(0);
+    setExpandedDrills({});
+    setLoadedTimerDrill("");
+    setTimerRunning(false);
+  };
+
+  const goToDay1 = () => {
+    setSelectedDay("Day1");
+    setCurrentExerciseIndex(0);
+    setExpandedDrills({});
+    setLoadedTimerDrill("");
+    setTimerRunning(false);
+  };
+
   const goNextExercise = () => {
     if (currentDrill) updateDrill(currentDrill.name, "done", true);
     if (currentExerciseIndex === dayPlan.drills.length - 1) {
@@ -548,6 +603,7 @@ export default function SpeedExplosiveTrainingApp() {
                 </div>
                 <Badge className="rounded-full px-3 py-1 text-sm">Week {weekNumber}</Badge>
               </div>
+
               <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div className="rounded-2xl bg-white/10 p-3">
                   <div className="flex items-center gap-2 text-slate-300">
@@ -564,14 +620,49 @@ export default function SpeedExplosiveTrainingApp() {
                   </div>
                 </div>
               </div>
-              <div className="mt-3 flex gap-2">
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  className="rounded-2xl bg-white text-slate-900"
+                  onClick={goBackTrainingDay}
+                >
+                  <SkipBack className="mr-1 h-4 w-4" /> Back Day
+                </Button>
                 <Button
                   variant="outline"
                   className="rounded-2xl bg-white text-slate-900"
                   onClick={advanceToNextTrainingDay}
                 >
-                  Advance Day
+                  <SkipForward className="mr-1 h-4 w-4" /> Advance Day
                 </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-2xl bg-white text-slate-900"
+                  onClick={restartCurrentDay}
+                >
+                  <Undo2 className="mr-1 h-4 w-4" /> Restart Day
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-2xl bg-white text-slate-900"
+                  onClick={goToDay1}
+                >
+                  Day 1
+                </Button>
+              </div>
+
+              <div className="mt-2">
+                <Button
+                  variant="outline"
+                  className="w-full rounded-2xl bg-white text-slate-900"
+                  onClick={restartCurrentWeek}
+                >
+                  <RotateCcw className="mr-1 h-4 w-4" /> Restart Week
+                </Button>
+              </div>
+
+              <div className="mt-3 flex gap-2">
                 <Input
                   value={athlete}
                   onChange={(e) => setAthlete(e.target.value)}
@@ -621,6 +712,7 @@ export default function SpeedExplosiveTrainingApp() {
                     <Progress value={completionPct} />
                   </div>
                 </CardHeader>
+
                 <CardContent>
                   <div className="mb-4 rounded-3xl border bg-slate-50 p-4">
                     <div className="mb-3 flex items-center gap-2">
@@ -838,7 +930,12 @@ export default function SpeedExplosiveTrainingApp() {
                   {metrics.map((metric) => {
                     const pr = personalRecords[metric.key];
                     const currentValue = metricData?.[weekNumber]?.[metric.key];
-                    const isPR = currentValue !== undefined && currentValue !== "" && pr !== null && Number(currentValue) === pr;
+                    const isPR =
+                      currentValue !== undefined &&
+                      currentValue !== "" &&
+                      pr !== null &&
+                      Number(currentValue) === pr;
+
                     return (
                       <div key={metric.key} className="rounded-2xl border p-3">
                         <div className="mb-2 flex items-center justify-between gap-2">
@@ -859,7 +956,9 @@ export default function SpeedExplosiveTrainingApp() {
                           onChange={(e) => updateMetric(metric.key, e.target.value)}
                           className="rounded-2xl"
                         />
-                        {isPR ? <div className="mt-2 text-sm font-medium text-green-600">New personal record</div> : null}
+                        {isPR ? (
+                          <div className="mt-2 text-sm font-medium text-green-600">New personal record</div>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -891,7 +990,11 @@ export default function SpeedExplosiveTrainingApp() {
                       Tracking: <span className="font-medium text-slate-900">{selectedMetric.label}</span>
                       {selectedMetric.better === "lower" ? " · lower is better" : " · higher is better"}
                     </div>
-                    {chartPR !== null ? <Badge variant="outline" className="rounded-full">PR {chartPR}</Badge> : null}
+                    {chartPR !== null ? (
+                      <Badge variant="outline" className="rounded-full">
+                        PR {chartPR}
+                      </Badge>
+                    ) : null}
                   </div>
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -900,7 +1003,11 @@ export default function SpeedExplosiveTrainingApp() {
                         <XAxis dataKey="week" />
                         <YAxis />
                         <Tooltip />
-                        <ReferenceLine y={chartPR ?? undefined} strokeDasharray="4 4" label={chartPR !== null ? "PR" : undefined} />
+                        <ReferenceLine
+                          y={chartPR ?? undefined}
+                          strokeDasharray="4 4"
+                          label={chartPR !== null ? "PR" : undefined}
+                        />
                         <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
